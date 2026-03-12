@@ -20,7 +20,7 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>
 
-export default function LoginPage() {
+export  function LoginPage() {
   const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
 

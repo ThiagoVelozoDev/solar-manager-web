@@ -1,0 +1,55 @@
+import { Sun, Bell, Settings, User, LogOut } from "lucide-react";
+import {Badge} from "../ui/badge";
+import { useNavigate } from "react-router";
+
+interface HeaderProps {
+  alarmsCount: number;
+}
+
+export function Header({ alarmsCount }: HeaderProps) {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    navigate('/');
+  };
+
+  return (
+    <header className="border-b bg-white sticky top-0 z-10">
+      <div className="flex items-center justify-between px-6 py-4">
+        <div className="flex items-center gap-3">
+          <div className="bg-amber-500 p-2 rounded-lg">
+            <Sun className="size-6 text-white" />
+          </div>
+          <div>
+            <h1 className="font-bold text-xl">Solar Manager</h1>
+            <p className="text-sm text-gray-500">Sistema de Gestão de Usinas Solares</p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <button className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            <Bell className="size-5 text-gray-600" />
+            {alarmsCount > 0 && (
+              <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500 text-white text-xs">
+                {alarmsCount}
+              </Badge>
+            )}
+          </button>
+          <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            <Settings className="size-5 text-gray-600" />
+          </button>
+          <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            <User className="size-5 text-gray-600" />
+          </button>
+          <button 
+            onClick={handleLogout}
+            className="p-2 hover:bg-red-50 rounded-lg transition-colors group"
+            title="Sair"
+          >
+            <LogOut className="size-5 text-gray-600 group-hover:text-red-600" />
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+}
