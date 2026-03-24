@@ -83,7 +83,7 @@ export function PlantDetailsModal({ plant, isOpen, onClose }: PlantDetailsModalP
 
           <TabsContent value="overview" className="space-y-4 mt-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 border rounded-lg">
+              <div className="p-4 border rounded-lg bg-white">
                 <div className="flex items-center gap-2 mb-2">
                   <Zap className="size-5 text-amber-500" />
                   <span className="font-medium">Geração Atual</span>
@@ -98,7 +98,7 @@ export function PlantDetailsModal({ plant, isOpen, onClose }: PlantDetailsModalP
                 </p>
               </div>
 
-              <div className="p-4 border rounded-lg">
+              <div className="p-4 border rounded-lg bg-white">
                 <div className="flex items-center gap-2 mb-2">
                   <TrendingUp className="size-5 text-blue-500" />
                   <span className="font-medium">Eficiência</span>
@@ -107,7 +107,7 @@ export function PlantDetailsModal({ plant, isOpen, onClose }: PlantDetailsModalP
                 <p className="text-sm text-gray-500 mt-1">Performance do sistema</p>
               </div>
 
-              <div className="p-4 border rounded-lg">
+              <div className="p-4 border rounded-lg bg-white">
                 <div className="flex items-center gap-2 mb-2">
                   <Activity className="size-5 text-purple-500" />
                   <span className="font-medium">Geração Mensal</span>
@@ -122,7 +122,7 @@ export function PlantDetailsModal({ plant, isOpen, onClose }: PlantDetailsModalP
                 </p>
               </div>
 
-              <div className="p-4 border rounded-lg">
+              <div className="p-4 border rounded-lg bg-white">
                 <div className="flex items-center gap-2 mb-2">
                   <Sun className="size-5 text-orange-500" />
                   <span className="font-medium">Horas de Sol</span>
@@ -136,7 +136,7 @@ export function PlantDetailsModal({ plant, isOpen, onClose }: PlantDetailsModalP
           <TabsContent value="equipment" className="space-y-4 mt-4">
             <div className="space-y-3">
               {inverters.map((inverter) => (
-                <div key={inverter.id} className="p-4 border rounded-lg">
+                <div key={inverter.id} className="p-4 border rounded-lg bg-white">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <div className={`w-3 h-3 rounded-full ${
@@ -165,7 +165,7 @@ export function PlantDetailsModal({ plant, isOpen, onClose }: PlantDetailsModalP
 
           <TabsContent value="weather" className="space-y-4 mt-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 border rounded-lg">
+              <div className="p-4 border rounded-lg bg-white">
                 <div className="flex items-center gap-2 mb-2">
                   <Thermometer className="size-5 text-red-500" />
                   <span className="font-medium">Temperatura</span>
@@ -173,7 +173,7 @@ export function PlantDetailsModal({ plant, isOpen, onClose }: PlantDetailsModalP
                 <p className="text-3xl font-bold">{weatherData.temperature}°C</p>
               </div>
 
-              <div className="p-4 border rounded-lg">
+              <div className="p-4 border rounded-lg bg-white">
                 <div className="flex items-center gap-2 mb-2">
                   <CloudRain className="size-5 text-blue-500" />
                   <span className="font-medium">Umidade</span>
@@ -181,7 +181,7 @@ export function PlantDetailsModal({ plant, isOpen, onClose }: PlantDetailsModalP
                 <p className="text-3xl font-bold">{weatherData.humidity}%</p>
               </div>
 
-              <div className="p-4 border rounded-lg">
+              <div className="p-4 border rounded-lg bg-white">
                 <div className="flex items-center gap-2 mb-2">
                   <Wind className="size-5 text-gray-500" />
                   <span className="font-medium">Vento</span>
@@ -189,7 +189,7 @@ export function PlantDetailsModal({ plant, isOpen, onClose }: PlantDetailsModalP
                 <p className="text-3xl font-bold">{weatherData.windSpeed} km/h</p>
               </div>
 
-              <div className="p-4 border rounded-lg">
+              <div className="p-4 border rounded-lg bg-white">
                 <div className="flex items-center gap-2 mb-2">
                   <Sun className="size-5 text-amber-500" />
                   <span className="font-medium">Irradiância</span>
@@ -197,7 +197,7 @@ export function PlantDetailsModal({ plant, isOpen, onClose }: PlantDetailsModalP
                 <p className="text-3xl font-bold">{weatherData.irradiance} W/m²</p>
               </div>
 
-              <div className="p-4 border rounded-lg col-span-2">
+              <div className="p-4 border rounded-lg col-span-2 bg-white">
                 <div className="flex items-center gap-2 mb-2">
                   <CloudRain className="size-5 text-gray-400" />
                   <span className="font-medium">Cobertura de Nuvens</span>

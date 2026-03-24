@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/ca
 import { Input } from "../../components/ui/input";
 import { Badge } from "../../components/ui/badge";
 import { Progress } from "../../components/ui/progress";
-import { Search, ArrowUpDown } from "lucide-react";
+import { Search, ArrowUpDown, ArrowRight } from "lucide-react";
 import { type SolarPlant } from "../ui/plantCard";
 
 interface PlantsTableProps {
@@ -75,7 +75,10 @@ export function PlantsTable({ plants, onSelectPlant }: PlantsTableProps) {
     <Card>
       <CardHeader>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <CardTitle className="text-lg sm:text-2xl">Clientes - Usinas Solares</CardTitle>
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-lg sm:text-2xl">Clientes - Usinas Solares</CardTitle>
+            <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full whitespace-nowrap">Clique para ver detalhes</span>
+          </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <div className="relative w-full sm:w-[300px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
@@ -159,7 +162,7 @@ export function PlantsTable({ plants, onSelectPlant }: PlantsTableProps) {
                   return (
                     <TableRow
                       key={plant.id}
-                      className="cursor-pointer hover:bg-gray-50 text-xs sm:text-sm"
+                      className="cursor-pointer hover:bg-amber-50 hover:shadow-sm transition-colors text-xs sm:text-sm border-l-4 border-l-transparent hover:border-l-amber-500 group"
                       onClick={() => onSelectPlant(plant)}
                     >
                       <TableCell className="font-medium whitespace-nowrap">{plant.name}</TableCell>
@@ -200,6 +203,9 @@ export function PlantsTable({ plants, onSelectPlant }: PlantsTableProps) {
                       </TableCell>
                       <TableCell className="text-xs sm:text-sm text-gray-500 hidden lg:table-cell whitespace-nowrap">
                         {plant.lastUpdate}
+                      </TableCell>
+                      <TableCell className="text-right pr-2">
+                        <ArrowRight className="size-4 text-gray-400 group-hover:text-amber-600 transition-colors" />
                       </TableCell>
                     </TableRow>
                   );
