@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Dialog, DialogBackdrop, DialogPanel, TransitionChild } from '@headlessui/react'
 import {
   XMarkIcon,
@@ -56,6 +57,7 @@ export function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
               setMonitoringOpen={setMonitoringOpen}
               clientsOpen={clientsOpen}
               setClientsOpen={setClientsOpen}
+              onNavClick={() => setSidebarOpen(false)}
             />
 
           </DialogPanel>
@@ -80,8 +82,20 @@ function SidebarContent({
   monitoringOpen,
   setMonitoringOpen,
   clientsOpen,
-  setClientsOpen
+  setClientsOpen,
+  onNavClick
 }: any) {
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  const handleNavigation = (path: string) => {
+    navigate(path)
+    onNavClick?.()
+  }
+
+  const isActive = (path: string) => {
+    return location.pathname === path
+  }
 
   return (
     <div className="flex grow flex-col overflow-y-auto border-r border-gray-200 bg-white px-4 sm:px-6">
@@ -100,10 +114,18 @@ function SidebarContent({
 
           {/* DASHBOARD */}
           <li>
-            <a className="flex items-center gap-3 rounded-lg bg-amber-50 px-3 py-2 text-xs sm:text-sm font-semibold text-amber-600">
+            <button
+              onClick={() => handleNavigation('/')}
+              className={classNames(
+                isActive('/') 
+                  ? 'bg-amber-50 text-amber-600' 
+                  : 'text-gray-700 hover:bg-gray-100',
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold w-full transition-colors'
+              )}
+            >
               <LayoutDashboard className="size-4 sm:size-5 flex-shrink-0" />
               <span>Dashboard</span>
-            </a>
+            </button>
           </li>
 
           {/* MONITORAMENTO */}
@@ -127,9 +149,19 @@ function SidebarContent({
             {monitoringOpen && (
               <ul className="ml-6 sm:ml-8 mt-2 space-y-2">
 
-                <li className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 hover:text-amber-600 cursor-pointer">
-                  <Activity className="size-3 sm:size-4 flex-shrink-0"/>
-                  <span>Tempo Real</span>
+                <li>
+                  <button 
+                    onClick={() => handleNavigation('/monitoring')}
+                    className={classNames(
+                      isActive('/monitoring') 
+                        ? 'text-amber-600 font-medium' 
+                        : 'text-gray-600 hover:text-amber-600',
+                      'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors'
+                    )}
+                  >
+                    <Activity className="size-3 sm:size-4 flex-shrink-0"/>
+                    <span>Tempo Real</span>
+                  </button>
                 </li>
 
               </ul>
@@ -139,17 +171,27 @@ function SidebarContent({
 
 
           {/* ALARMES */}
-          <li className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-100">
+          <li>
+            <button
+              onClick={() => handleNavigation('/alerts')}
+              className={classNames(
+                isActive('/alerts') 
+                  ? 'bg-red-50 text-red-600' 
+                  : 'text-gray-700 hover:bg-gray-100',
+                'flex items-center justify-between px-3 py-2 rounded-lg w-full transition-colors'
+              )}
+            >
 
-            <span className="flex items-center gap-3 text-xs sm:text-sm font-medium text-gray-700 min-w-0">
-              <AlertTriangle className="size-4 sm:size-5 flex-shrink-0"/>
-              <span className="truncate">Alarmes</span>
-            </span>
+              <span className="flex items-center gap-3 text-xs sm:text-sm font-medium min-w-0">
+                <AlertTriangle className="size-4 sm:size-5 flex-shrink-0"/>
+                <span className="truncate">Alarmes</span>
+              </span>
 
-            <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full flex-shrink-0">
-              3
-            </span>
+              <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full flex-shrink-0">
+                3
+              </span>
 
+            </button>
           </li>
 
 
@@ -174,24 +216,79 @@ function SidebarContent({
             {clientsOpen && (
               <ul className="ml-6 sm:ml-8 mt-2 space-y-2">
 
-                <li className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 hover:text-amber-600 cursor-pointer">
-                  <Factory className="size-3 sm:size-4 flex-shrink-0"/>
-                  <span>Clientes</span>
+                <li>
+                  <button 
+                    onClick={() => handleNavigation('/clients')}
+                    className={classNames(
+                      isActive('/clients') 
+                        ? 'text-amber-600 font-medium' 
+                        : 'text-gray-600 hover:text-amber-600',
+                      'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors'
+                    )}
+                  >
+                    <Factory className="size-3 sm:size-4 flex-shrink-0"/>
+                    <span>Clientes</span>
+                  </button>
                 </li>
 
-                <li className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 hover:text-amber-600 cursor-pointer">
-                  <Factory className="size-3 sm:size-4 flex-shrink-0"/>
-                  <span>Usinas</span>
+                <li>
+                  <button 
+                    onClick={() => handleNavigation('/plants')}
+                    className={classNames(
+                      isActive('/plants') 
+                        ? 'text-amber-600 font-medium' 
+                        : 'text-gray-600 hover:text-amber-600',
+                      'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors'
+                    )}
+                  >
+                    <Factory className="size-3 sm:size-4 flex-shrink-0"/>
+                    <span>Usinas</span>
+                  </button>
                 </li>
 
-                <li className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 hover:text-amber-600 cursor-pointer">
-                  <Cpu className="size-3 sm:size-4 flex-shrink-0"/>
-                  <span>Equipamentos</span>
+                <li>
+                  <button 
+                    onClick={() => handleNavigation('/equipment')}
+                    className={classNames(
+                      isActive('/equipment') 
+                        ? 'text-amber-600 font-medium' 
+                        : 'text-gray-600 hover:text-amber-600',
+                      'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors'
+                    )}
+                  >
+                    <Cpu className="size-3 sm:size-4 flex-shrink-0"/>
+                    <span>Equipamentos</span>
+                  </button>
                 </li>
 
-                <li className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 hover:text-amber-600 cursor-pointer">
-                  <Building2 className="size-3 sm:size-4 flex-shrink-0"/>
-                  <span>Empresas</span>
+                <li>
+                  <button 
+                    onClick={() => handleNavigation('/inverter')}
+                    className={classNames(
+                      isActive('/inverter') 
+                        ? 'text-amber-600 font-medium' 
+                        : 'text-gray-600 hover:text-amber-600',
+                      'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors'
+                    )}
+                  >
+                    <Cpu className="size-3 sm:size-4 flex-shrink-0"/>
+                    <span>Inversores</span>
+                  </button>
+                </li>
+
+                <li>
+                  <button 
+                    onClick={() => handleNavigation('/company')}
+                    className={classNames(
+                      isActive('/company') 
+                        ? 'text-amber-600 font-medium' 
+                        : 'text-gray-600 hover:text-amber-600',
+                      'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors'
+                    )}
+                  >
+                    <Building2 className="size-3 sm:size-4 flex-shrink-0"/>
+                    <span>Empresas</span>
+                  </button>
                 </li>
 
               </ul>
@@ -201,30 +298,70 @@ function SidebarContent({
 
 
           {/* ANALISE */}
-          <li className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 text-xs sm:text-sm text-gray-700">
-            <LineChart className="size-4 sm:size-5 flex-shrink-0"/>
-            <span>Análise</span>
+          <li>
+            <button
+              onClick={() => handleNavigation('/analytics')}
+              className={classNames(
+                isActive('/analytics') 
+                  ? 'bg-blue-50 text-blue-600' 
+                  : 'text-gray-700 hover:bg-gray-100',
+                'flex items-center gap-3 px-3 py-2 rounded-lg w-full text-xs sm:text-sm transition-colors'
+              )}
+            >
+              <LineChart className="size-4 sm:size-5 flex-shrink-0"/>
+              <span>Análise</span>
+            </button>
           </li>
 
 
           {/* MANUTENCAO */}
-          <li className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 text-xs sm:text-sm text-gray-700">
-            <Wrench className="size-4 sm:size-5 flex-shrink-0"/>
-            <span>Manutenção</span>
+          <li>
+            <button
+              onClick={() => handleNavigation('/maintenance')}
+              className={classNames(
+                isActive('/maintenance') 
+                  ? 'bg-purple-50 text-purple-600' 
+                  : 'text-gray-700 hover:bg-gray-100',
+                'flex items-center gap-3 px-3 py-2 rounded-lg w-full text-xs sm:text-sm transition-colors'
+              )}
+            >
+              <Wrench className="size-4 sm:size-5 flex-shrink-0"/>
+              <span>Manutenção</span>
+            </button>
           </li>
 
 
           {/* FINANCEIRO */}
-          <li className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 text-xs sm:text-sm text-gray-700">
-            <DollarSign className="size-4 sm:size-5 flex-shrink-0"/>
-            <span>Financeiro</span>
+          <li>
+            <button
+              onClick={() => handleNavigation('/financial')}
+              className={classNames(
+                isActive('/financial') 
+                  ? 'bg-green-50 text-green-600' 
+                  : 'text-gray-700 hover:bg-gray-100',
+                'flex items-center gap-3 px-3 py-2 rounded-lg w-full text-xs sm:text-sm transition-colors'
+              )}
+            >
+              <DollarSign className="size-4 sm:size-5 flex-shrink-0"/>
+              <span>Financeiro</span>
+            </button>
           </li>
 
 
           {/* CONFIG */}
-          <li className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 text-xs sm:text-sm text-gray-700">
-            <Settings className="size-4 sm:size-5 flex-shrink-0"/>
-            <span>Configurações</span>
+          <li>
+            <button
+              onClick={() => handleNavigation('/settings')}
+              className={classNames(
+                isActive('/settings') 
+                  ? 'bg-gray-100 text-gray-900' 
+                  : 'text-gray-700 hover:bg-gray-100',
+                'flex items-center gap-3 px-3 py-2 rounded-lg w-full text-xs sm:text-sm transition-colors'
+              )}
+            >
+              <Settings className="size-4 sm:size-5 flex-shrink-0"/>
+              <span>Configurações</span>
+            </button>
           </li>
 
         </ul>

@@ -7,6 +7,8 @@ import { Layout } from './components/ui/layout';
 
 import { Home } from '../src/pages/home';
 import DashboardPage from './pages/dashboard';
+import CompanyPage from './pages/company';
+import InverterPage from './pages/inverter';
 
 
 const router = createBrowserRouter([
@@ -25,7 +27,50 @@ const router = createBrowserRouter([
             path: "/dashboard",
             element: <DashboardPage />,
           },
-
+          {
+            path: "/company",
+            element: <CompanyPage />,
+          },
+          {
+            path: "/inverter",
+            element: <InverterPage />,
+          },
+          {
+            path: "/monitoring",
+            element: <DashboardPage />, // Placeholder
+          },
+          {
+            path: "/alerts",
+            element: <DashboardPage />, // Placeholder
+          },
+          {
+            path: "/clients",
+            element: <DashboardPage />, // Placeholder
+          },
+          {
+            path: "/plants",
+            element: <DashboardPage />, // Placeholder
+          },
+          {
+            path: "/equipment",
+            element: <DashboardPage />, // Placeholder
+          },
+          {
+            path: "/analytics",
+            element: <DashboardPage />, // Placeholder
+          },
+          {
+            path: "/maintenance",
+            element: <DashboardPage />, // Placeholder
+          },
+          {
+            path: "/financial",
+            element: <DashboardPage />, // Placeholder
+          },
+          {
+            path: "/settings",
+            element: <DashboardPage />, // Placeholder
+          },
         ],
       },
     ],
