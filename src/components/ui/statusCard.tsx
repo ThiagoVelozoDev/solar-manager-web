@@ -16,23 +16,23 @@ interface StatusCardProps {
 export function StatusCard({ title, value, subtitle, icon: Icon, color, trend }: StatusCardProps) {
   return (
     <Card>
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <p className="text-sm text-gray-500 mb-1">{title}</p>
-            <p className="text-3xl font-bold mb-1">{value}</p>
-            <p className="text-sm text-gray-600">{subtitle}</p>
+      <CardContent className="p-3 sm:p-4 md:p-6">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs sm:text-sm text-gray-500 mb-0.5 sm:mb-1 truncate">{title}</p>
+            <p className="text-2xl sm:text-3xl font-bold mb-0.5 sm:mb-1 break-words">{value}</p>
+            <p className="text-xs sm:text-sm text-gray-600 truncate">{subtitle}</p>
             {trend && (
-              <div className="mt-2">
-                <span className={`text-sm font-medium ${trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+              <div className="mt-1 sm:mt-2">
+                <span className={`text-xs sm:text-sm font-medium ${trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
                   {trend.isPositive ? '↑' : '↓'} {trend.value}
                 </span>
-                <span className="text-sm text-gray-500 ml-1">vs. ontem</span>
+                <span className="text-xs sm:text-sm text-gray-500 ml-1">vs. ontem</span>
               </div>
             )}
           </div>
-          <div className={`p-3 rounded-lg ${color}`}>
-            <Icon className="size-6 text-white" />
+          <div className={`p-1.5 sm:p-2 md:p-3 rounded-lg ${color} flex-shrink-0`}>
+            <Icon className="size-4 sm:size-5 md:size-6 text-white" />
           </div>
         </div>
       </CardContent>

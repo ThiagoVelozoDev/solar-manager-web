@@ -124,9 +124,9 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <main className="px-6 py-8">
+      <main className="px-0 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
         {/* Cards de Status */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
           <StatusCard
             title="Geração Total"
             value={`${totalGeneration.toFixed(1)} kW`}
@@ -161,18 +161,18 @@ export default function DashboardPage() {
         </div>
 
         {/* Gráfico de Geração */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8 overflow-x-auto">
           <EnergyChart data={{ daily: dailyChartData, monthly: monthlyChartData }} />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Tabela de Clientes */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 overflow-x-auto">
             <PlantsTable plants={mockPlants} onSelectPlant={setSelectedPlant} />
           </div>
 
           {/* Painel de Alertas - altura total */}
-          <div className="lg:h-[calc(100vh-32rem)]">
+          <div className="h-auto lg:h-[calc(100vh-200px)]">
             <AlertsPanel alerts={alerts} onDismiss={handleDismissAlert} />
           </div>
         </div>

@@ -24,18 +24,18 @@ export function EnergyChart({ data }: EnergyChartProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Geração de Energia</CardTitle>
+        <CardTitle className="text-lg sm:text-2xl">Geração de Energia</CardTitle>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="daily" className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="daily">Hoje</TabsTrigger>
-            <TabsTrigger value="monthly">Mensal</TabsTrigger>
+          <TabsList className="grid w-full max-w-sm sm:max-w-md grid-cols-2">
+            <TabsTrigger value="daily" className="text-xs sm:text-sm">Hoje</TabsTrigger>
+            <TabsTrigger value="monthly" className="text-xs sm:text-sm">Mensal</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="daily" className="mt-6">
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={data.daily}>
+          <TabsContent value="daily" className="mt-4 sm:mt-6">
+            <ResponsiveContainer width="100%" height={250} minHeight={250}>
+              <AreaChart data={data.daily} margin={{ left: -20, right: 10, top: 10, bottom: 10 }}>
                 <defs>
                   <linearGradient id="colorGeneration" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.8}/>
@@ -46,11 +46,13 @@ export function EnergyChart({ data }: EnergyChartProps) {
                 <XAxis 
                   dataKey="time" 
                   stroke="#6b7280"
-                  style={{ fontSize: '12px' }}
+                  style={{ fontSize: '11px' }}
+                  tick={{ angle: -45, textAnchor: 'end', height: 80 }}
                 />
                 <YAxis 
                   stroke="#6b7280"
-                  style={{ fontSize: '12px' }}
+                  style={{ fontSize: '11px' }}
+                  width={40}
                   label={{ value: 'kW', angle: -90, position: 'insideLeft' }}
                 />
                 <Tooltip 
@@ -58,10 +60,10 @@ export function EnergyChart({ data }: EnergyChartProps) {
                     backgroundColor: 'white',
                     border: '1px solid #e5e7eb',
                     borderRadius: '8px',
-                    fontSize: '12px'
+                    fontSize: '11px'
                   }}
                 />
-                <Legend />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
                 <Area
                   type="monotone"
                   dataKey="generation"
@@ -84,18 +86,19 @@ export function EnergyChart({ data }: EnergyChartProps) {
             </ResponsiveContainer>
           </TabsContent>
           
-          <TabsContent value="monthly" className="mt-6">
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={data.monthly}>
+          <TabsContent value="monthly" className="mt-4 sm:mt-6">
+            <ResponsiveContainer width="100%" height={250} minHeight={250}>
+              <LineChart data={data.monthly} margin={{ left: -20, right: 10, top: 10, bottom: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis 
                   dataKey="month" 
                   stroke="#6b7280"
-                  style={{ fontSize: '12px' }}
+                  style={{ fontSize: '11px' }}
                 />
                 <YAxis 
                   stroke="#6b7280"
-                  style={{ fontSize: '12px' }}
+                  style={{ fontSize: '11px' }}
+                  width={40}
                   label={{ value: 'MWh', angle: -90, position: 'insideLeft' }}
                 />
                 <Tooltip 
@@ -103,10 +106,10 @@ export function EnergyChart({ data }: EnergyChartProps) {
                     backgroundColor: 'white',
                     border: '1px solid #e5e7eb',
                     borderRadius: '8px',
-                    fontSize: '12px'
+                    fontSize: '11px'
                   }}
                 />
-                <Legend />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
                 <Line
                   type="monotone"
                   dataKey="generation"
