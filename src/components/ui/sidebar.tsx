@@ -187,8 +187,8 @@ function SidebarContent({
               <ul className="ml-8 mt-2 space-y-2">
 
                 <li className="flex items-center gap-2 text-sm text-gray-600 hover:text-amber-600 cursor-pointer">
-                  <Building2 className="size-4"/>
-                  Empresas
+                  <Factory className="size-4"/>
+                  Clientes
                 </li>
 
                 <li className="flex items-center gap-2 text-sm text-gray-600 hover:text-amber-600 cursor-pointer">
@@ -199,6 +199,11 @@ function SidebarContent({
                 <li className="flex items-center gap-2 text-sm text-gray-600 hover:text-amber-600 cursor-pointer">
                   <Cpu className="size-4"/>
                   Equipamentos
+                </li>
+
+                <li className="flex items-center gap-2 text-sm text-gray-600 hover:text-amber-600 cursor-pointer">
+                  <Building2 className="size-4"/>
+                  Empresas
                 </li>
 
               </ul>
