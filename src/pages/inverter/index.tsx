@@ -151,7 +151,7 @@ export default function InverterPage() {
                       <select
                         id={field.name}
                         className="w-full rounded-md border bg-white px-3 py-2 text-sm"
-                        {...register(field.name)}
+                        {...register(field.name as keyof InverterFormData)}
                       >
                         <option value="">Selecione a usina</option>
                         {mockPlants.map(plant => (
@@ -161,7 +161,7 @@ export default function InverterPage() {
                         ))}
                       </select>
                     ) : (
-                      <Input id={field.name} placeholder={field.placeholder} {...register(field.name)} />
+                      <Input id={field.name} placeholder={field.placeholder} {...register(field.name as keyof InverterFormData)} />
                     )}
                     {errors[field.name as keyof InverterFormData] && (
                       <p className="text-sm text-red-500">{errors[field.name as keyof InverterFormData]?.message}</p>
