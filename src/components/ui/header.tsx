@@ -1,12 +1,13 @@
-import { Sun, Bell, Settings, User, LogOut } from "lucide-react";
+import { Sun, Bell, Settings, User, LogOut, Menu } from "lucide-react";
 import {Badge} from "../ui/badge";
 import { useNavigate } from "react-router";
 
 interface HeaderProps {
   alarmsCount: number;
+  onSidebarToggle?: () => void;
 }
 
-export function Header({ alarmsCount }: HeaderProps) {
+export function Header({ alarmsCount, onSidebarToggle }: HeaderProps) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -17,6 +18,13 @@ export function Header({ alarmsCount }: HeaderProps) {
     <header className="border-b bg-white sticky top-0 z-10">
       <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <button 
+            onClick={onSidebarToggle}
+            className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors -ml-2"
+            title="Menu"
+          >
+            <Menu className="size-5 text-gray-600" />
+          </button>
           <div className="bg-amber-500 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
             <Sun className="size-5 sm:size-6 text-white" />
           </div>

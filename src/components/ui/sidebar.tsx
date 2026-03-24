@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Dialog, DialogBackdrop, DialogPanel, TransitionChild } from '@headlessui/react'
 import {
-  Bars3Icon,
   XMarkIcon,
   ChevronDownIcon
 } from '@heroicons/react/24/outline'
@@ -19,71 +18,58 @@ import {
   Wrench,
   DollarSign,
   Settings,
-  User
+  User,
+  Sun
 } from "lucide-react"
-
-import { Sun } from "lucide-react"
 
 const classNames = (...classes: (string | false | undefined | null)[]) =>
   classes.filter(Boolean).join(' ')
 
-export function Sidebar() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+interface SidebarProps {
+  sidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
+}
+
+export function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
   const [monitoringOpen, setMonitoringOpen] = useState(true)
   const [clientsOpen, setClientsOpen] = useState(true)
 
   return (
     <>
-      <div>
+      {/* MOBILE SIDEBAR */}
+      <Dialog open={sidebarOpen} onClose={setSidebarOpen} className="relative z-50 lg:hidden">
+        <DialogBackdrop className="fixed inset-0 bg-gray-900/80" />
 
-        {/* MOBILE SIDEBAR */}
-        <Dialog open={sidebarOpen} onClose={setSidebarOpen} className="relative z-50 lg:hidden">
-          <DialogBackdrop className="fixed inset-0 bg-gray-900/80" />
+        <div className="fixed inset-0 flex">
+          <DialogPanel className="relative mr-16 flex w-full max-w-xs flex-1">
 
-          <div className="fixed inset-0 flex">
-            <DialogPanel className="relative mr-16 flex w-full max-w-xs flex-1">
+            <TransitionChild>
+              <div className="absolute top-0 left-full flex w-16 justify-center pt-5">
+                <button onClick={() => setSidebarOpen(false)}>
+                  <XMarkIcon className="size-6 text-white" />
+                </button>
+              </div>
+            </TransitionChild>
 
-              <TransitionChild>
-                <div className="absolute top-0 left-full flex w-16 justify-center pt-5">
-                  <button onClick={() => setSidebarOpen(false)}>
-                    <XMarkIcon className="size-6 text-white" />
-                  </button>
-                </div>
-              </TransitionChild>
+            <SidebarContent
+              monitoringOpen={monitoringOpen}
+              setMonitoringOpen={setMonitoringOpen}
+              clientsOpen={clientsOpen}
+              setClientsOpen={setClientsOpen}
+            />
 
-              <SidebarContent
-                monitoringOpen={monitoringOpen}
-                setMonitoringOpen={setMonitoringOpen}
-                clientsOpen={clientsOpen}
-                setClientsOpen={setClientsOpen}
-              />
-
-            </DialogPanel>
-          </div>
-        </Dialog>
-
-        {/* DESKTOP SIDEBAR */}
-        <div className="hidden lg:flex lg:w-72 lg:flex-col">
-          <SidebarContent
-            monitoringOpen={monitoringOpen}
-            setMonitoringOpen={setMonitoringOpen}
-            clientsOpen={clientsOpen}
-            setClientsOpen={setClientsOpen}
-          />
+          </DialogPanel>
         </div>
+      </Dialog>
 
-        {/* MOBILE HEADER */}
-        <div className="sticky top-0 z-40 flex items-center gap-x-6 bg-white px-4 py-4 shadow lg:hidden">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="-m-2.5 p-2.5 text-gray-700"
-          >
-            <Bars3Icon className="size-6" />
-          </button>
-
-          <span className="font-semibold">Dashboard</span>
-        </div>
-
+      {/* DESKTOP SIDEBAR */}
+      <div className="hidden lg:flex lg:w-72 lg:flex-col">
+        <SidebarContent
+          monitoringOpen={monitoringOpen}
+          setMonitoringOpen={setMonitoringOpen}
+          clientsOpen={clientsOpen}
+          setClientsOpen={setClientsOpen}
+        />
       </div>
     </>
   )
