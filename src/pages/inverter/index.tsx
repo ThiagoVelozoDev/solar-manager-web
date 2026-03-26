@@ -49,10 +49,10 @@ type InverterFormData = z.infer<typeof inverterSchema>;
 
 // Mock data para usinas cadastradas
 const mockPlants = [
-  { id: "PLT-01", name: "Usina Solar Central" },
-  { id: "PLT-02", name: "Usina Solar Norte" },
-  { id: "PLT-03", name: "Usina Solar Sul" },
-  { id: "PLT-04", name: "Usina Solar Leste" },
+  { id: "PLT-01", name: "Thiago Lima Velozo" },
+  { id: "PLT-02", name: "Rodrigo Macedo" },
+  { id: "PLT-03", name: "Elan Cardeque" },
+  { id: "PLT-04", name: "Gustavo Lima" },
 ];
 
 const initialInverters: Inverter[] = [

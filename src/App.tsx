@@ -5,10 +5,15 @@ import { LoginPage } from './pages/login';
 import { createBrowserRouter } from 'react-router-dom';
 import { Layout } from './components/ui/layout';
 
-import { Home } from '../src/pages/home';
 import DashboardPage from './pages/dashboard';
 import CompanyPage from './pages/company';
 import InverterPage from './pages/inverter';
+import PlantPage from './pages/plant';
+import ClientPage from './pages/client';
+import WorkOrdersPage from './pages/work-orders/index'; 
+import WorkOrderCreatePage from './pages/work-orders/create'; 
+import WorkOrderEditPage from './pages/work-orders/edit';
+import WorkOrderConclusionPage from './pages/work-orders/conclusion';
 
 
 const router = createBrowserRouter([
@@ -45,11 +50,11 @@ const router = createBrowserRouter([
           },
           {
             path: "/clients",
-            element: <DashboardPage />, // Placeholder
+            element: <ClientPage />,
           },
           {
             path: "/plants",
-            element: <DashboardPage />, // Placeholder
+            element: <PlantPage />,
           },
           {
             path: "/equipment",
@@ -61,7 +66,19 @@ const router = createBrowserRouter([
           },
           {
             path: "/maintenance",
-            element: <DashboardPage />, // Placeholder
+            element: <WorkOrdersPage />,
+          },
+          {
+            path: "/maintenance/create",
+            element: <WorkOrderCreatePage />,
+          },
+          {
+            path: "/maintenance/edit/:id",
+            element: <WorkOrderEditPage />,
+          },
+          {
+            path: "/maintenance/conclusion/:id",
+            element: <WorkOrderConclusionPage />,
           },
           {
             path: "/financial",

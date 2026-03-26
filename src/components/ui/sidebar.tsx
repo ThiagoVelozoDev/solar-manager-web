@@ -16,7 +16,7 @@ import {
   Factory,
   Cpu,
   LineChart,
-  Wrench,
+  ClipboardList,
   DollarSign,
   Settings,
   User,
@@ -117,8 +117,8 @@ function SidebarContent({
             <button
               onClick={() => handleNavigation('/')}
               className={classNames(
-                isActive('/') 
-                  ? 'bg-amber-50 text-amber-600' 
+                isActive('/')
+                  ? 'bg-amber-50 text-amber-600'
                   : 'text-gray-700 hover:bg-gray-100',
                 'flex items-center gap-3 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold w-full transition-colors'
               )}
@@ -136,30 +136,30 @@ function SidebarContent({
               className="flex w-full items-center justify-between px-3 py-2 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-lg"
             >
               <span className="flex items-center gap-3 min-w-0">
-                <Activity className="size-4 sm:size-5 flex-shrink-0"/>
+                <Activity className="size-4 sm:size-5 flex-shrink-0" />
                 <span className="truncate">Monitoramento</span>
               </span>
 
               <ChevronDownIcon className={classNames(
                 monitoringOpen ? "rotate-180" : "",
                 "size-4 transition flex-shrink-0"
-              )}/>
+              )} />
             </button>
 
             {monitoringOpen && (
               <ul className="ml-6 sm:ml-8 mt-2 space-y-2">
 
                 <li>
-                  <button 
+                  <button
                     onClick={() => handleNavigation('/monitoring')}
                     className={classNames(
-                      isActive('/monitoring') 
-                        ? 'text-amber-600 font-medium' 
+                      isActive('/monitoring')
+                        ? 'text-amber-600 font-medium'
                         : 'text-gray-600 hover:text-amber-600',
                       'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors'
                     )}
                   >
-                    <Activity className="size-3 sm:size-4 flex-shrink-0"/>
+                    <Activity className="size-3 sm:size-4 flex-shrink-0" />
                     <span>Tempo Real</span>
                   </button>
                 </li>
@@ -175,15 +175,15 @@ function SidebarContent({
             <button
               onClick={() => handleNavigation('/alerts')}
               className={classNames(
-                isActive('/alerts') 
-                  ? 'bg-red-50 text-red-600' 
+                isActive('/alerts')
+                  ? 'bg-red-50 text-red-600'
                   : 'text-gray-700 hover:bg-gray-100',
                 'flex items-center justify-between px-3 py-2 rounded-lg w-full transition-colors'
               )}
             >
 
               <span className="flex items-center gap-3 text-xs sm:text-sm font-medium min-w-0">
-                <AlertTriangle className="size-4 sm:size-5 flex-shrink-0"/>
+                <AlertTriangle className="size-4 sm:size-5 flex-shrink-0" />
                 <span className="truncate">Alarmes</span>
               </span>
 
@@ -203,90 +203,74 @@ function SidebarContent({
               className="flex w-full items-center justify-between px-3 py-2 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-lg"
             >
               <span className="flex items-center gap-3 min-w-0">
-                <Building2 className="size-4 sm:size-5 flex-shrink-0"/>
+                <Building2 className="size-4 sm:size-5 flex-shrink-0" />
                 <span className="truncate">Gestão de Clientes</span>
               </span>
 
               <ChevronDownIcon className={classNames(
                 clientsOpen ? "rotate-180" : "",
                 "size-4 transition flex-shrink-0"
-              )}/>
+              )} />
             </button>
 
             {clientsOpen && (
               <ul className="ml-6 sm:ml-8 mt-2 space-y-2">
 
                 <li>
-                  <button 
+                  <button
                     onClick={() => handleNavigation('/clients')}
                     className={classNames(
-                      isActive('/clients') 
-                        ? 'text-amber-600 font-medium' 
+                      isActive('/clients')
+                        ? 'text-amber-600 font-medium'
                         : 'text-gray-600 hover:text-amber-600',
                       'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors'
                     )}
                   >
-                    <Factory className="size-3 sm:size-4 flex-shrink-0"/>
+                    <Factory className="size-3 sm:size-4 flex-shrink-0" />
                     <span>Clientes</span>
                   </button>
                 </li>
 
                 <li>
-                  <button 
+                  <button
                     onClick={() => handleNavigation('/plants')}
                     className={classNames(
-                      isActive('/plants') 
-                        ? 'text-amber-600 font-medium' 
+                      isActive('/plants')
+                        ? 'text-amber-600 font-medium'
                         : 'text-gray-600 hover:text-amber-600',
                       'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors'
                     )}
                   >
-                    <Factory className="size-3 sm:size-4 flex-shrink-0"/>
+                    <Factory className="size-3 sm:size-4 flex-shrink-0" />
                     <span>Usinas</span>
                   </button>
                 </li>
-
                 <li>
-                  <button 
-                    onClick={() => handleNavigation('/equipment')}
-                    className={classNames(
-                      isActive('/equipment') 
-                        ? 'text-amber-600 font-medium' 
-                        : 'text-gray-600 hover:text-amber-600',
-                      'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors'
-                    )}
-                  >
-                    <Cpu className="size-3 sm:size-4 flex-shrink-0"/>
-                    <span>Equipamentos</span>
-                  </button>
-                </li>
-
-                <li>
-                  <button 
+                  <button
                     onClick={() => handleNavigation('/inverter')}
                     className={classNames(
-                      isActive('/inverter') 
-                        ? 'text-amber-600 font-medium' 
+                      isActive('/inverter')
+                        ? 'text-amber-600 font-medium'
                         : 'text-gray-600 hover:text-amber-600',
                       'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors'
                     )}
                   >
-                    <Cpu className="size-3 sm:size-4 flex-shrink-0"/>
+                    <Cpu className="size-3 sm:size-4 flex-shrink-0" />
                     <span>Inversores</span>
                   </button>
                 </li>
 
                 <li>
-                  <button 
+                  <button
                     onClick={() => handleNavigation('/company')}
                     className={classNames(
-                      isActive('/company') 
-                        ? 'text-amber-600 font-medium' 
+                      isActive('/company')
+                        ? 'text-amber-600 font-medium'
                         : 'text-gray-600 hover:text-amber-600',
                       'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors'
                     )}
                   >
-                    <Building2 className="size-3 sm:size-4 flex-shrink-0"/>
+                    <Building2 className="size-3 sm:size-4 flex-shrink-0" />
                     <span>Empresas</span>
                   </button>
                 </li>
@@ -302,31 +286,31 @@ function SidebarContent({
             <button
               onClick={() => handleNavigation('/analytics')}
               className={classNames(
-                isActive('/analytics') 
-                  ? 'bg-blue-50 text-blue-600' 
+                isActive('/analytics')
+                  ? 'bg-blue-50 text-blue-600'
                   : 'text-gray-700 hover:bg-gray-100',
                 'flex items-center gap-3 px-3 py-2 rounded-lg w-full text-xs sm:text-sm transition-colors'
               )}
             >
-              <LineChart className="size-4 sm:size-5 flex-shrink-0"/>
+              <LineChart className="size-4 sm:size-5 flex-shrink-0" />
               <span>Análise</span>
             </button>
           </li>
 
 
-          {/* MANUTENCAO */}
+          {/* ORDEM DE SERVICO */}
           <li>
             <button
               onClick={() => handleNavigation('/maintenance')}
               className={classNames(
-                isActive('/maintenance') 
-                  ? 'bg-purple-50 text-purple-600' 
+                isActive('/maintenance')
+                  ? 'bg-purple-50 text-purple-600'
                   : 'text-gray-700 hover:bg-gray-100',
                 'flex items-center gap-3 px-3 py-2 rounded-lg w-full text-xs sm:text-sm transition-colors'
               )}
             >
-              <Wrench className="size-4 sm:size-5 flex-shrink-0"/>
-              <span>Manutenção</span>
+              <ClipboardList className="size-4 sm:size-5 flex-shrink-0" />
+              <span>Ordem de Serviço</span>
             </button>
           </li>
 
@@ -336,13 +320,13 @@ function SidebarContent({
             <button
               onClick={() => handleNavigation('/financial')}
               className={classNames(
-                isActive('/financial') 
-                  ? 'bg-green-50 text-green-600' 
+                isActive('/financial')
+                  ? 'bg-green-50 text-green-600'
                   : 'text-gray-700 hover:bg-gray-100',
                 'flex items-center gap-3 px-3 py-2 rounded-lg w-full text-xs sm:text-sm transition-colors'
               )}
             >
-              <DollarSign className="size-4 sm:size-5 flex-shrink-0"/>
+              <DollarSign className="size-4 sm:size-5 flex-shrink-0" />
               <span>Financeiro</span>
             </button>
           </li>
@@ -353,13 +337,13 @@ function SidebarContent({
             <button
               onClick={() => handleNavigation('/settings')}
               className={classNames(
-                isActive('/settings') 
-                  ? 'bg-gray-100 text-gray-900' 
+                isActive('/settings')
+                  ? 'bg-gray-100 text-gray-900'
                   : 'text-gray-700 hover:bg-gray-100',
                 'flex items-center gap-3 px-3 py-2 rounded-lg w-full text-xs sm:text-sm transition-colors'
               )}
             >
-              <Settings className="size-4 sm:size-5 flex-shrink-0"/>
+              <Settings className="size-4 sm:size-5 flex-shrink-0" />
               <span>Configurações</span>
             </button>
           </li>
@@ -373,7 +357,7 @@ function SidebarContent({
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
 
             <div className="bg-gray-200 rounded-full p-1.5 sm:p-2 flex-shrink-0">
-              <User className="size-3 sm:size-5"/>
+              <User className="size-3 sm:size-5" />
             </div>
 
             <div className="min-w-0">
