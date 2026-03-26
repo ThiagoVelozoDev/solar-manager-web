@@ -204,7 +204,7 @@ function SidebarContent({
             >
               <span className="flex items-center gap-3 min-w-0">
                 <Building2 className="size-4 sm:size-5 flex-shrink-0" />
-                <span className="truncate">Gestão de Clientes</span>
+                <span className="truncate">Gestão Operacional</span>
               </span>
 
               <ChevronDownIcon className={classNames(
