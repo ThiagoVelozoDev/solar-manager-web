@@ -107,13 +107,7 @@ function SidebarContent({
   return (
     <div className="flex grow flex-col overflow-y-auto border-r border-gray-200 bg-white px-4 sm:px-6">
 
-      {/* LOGO */}
-      <div className="flex h-5 items-center gap-3 py-4 sm:py-6">
-        <div className="bg-amber-500 p-1.5 rounded-lg">
-          <Sun className="size-4 text-white" />
-        </div>
-        <span className="font-bold text-sm sm:text-base truncate">Solar Manager</span>
-      </div>
+     
 
       <nav className="flex flex-1 flex-col">
 
@@ -127,7 +121,7 @@ function SidebarContent({
                 isActive('/')
                   ? 'bg-amber-50 text-amber-600'
                   : 'text-gray-700 hover:bg-gray-100',
-                'flex items-center gap-3 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold w-full transition-colors'
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold w-full transition-colors mt-4'
               )}
             >
               <LayoutDashboard className="size-4 sm:size-5 flex-shrink-0" />
