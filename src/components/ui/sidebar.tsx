@@ -34,6 +34,7 @@ interface SidebarProps {
 export function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
   const [monitoringOpen, setMonitoringOpen] = useState(true)
   const [clientsOpen, setClientsOpen] = useState(true)
+  const [settingsOpen, setSettingsOpen] = useState(true)
 
   return (
     <>
@@ -57,6 +58,8 @@ export function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
               setMonitoringOpen={setMonitoringOpen}
               clientsOpen={clientsOpen}
               setClientsOpen={setClientsOpen}
+              settingsOpen={settingsOpen}
+              setSettingsOpen={setSettingsOpen}
               onNavClick={() => setSidebarOpen(false)}
             />
 
@@ -71,6 +74,8 @@ export function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
           setMonitoringOpen={setMonitoringOpen}
           clientsOpen={clientsOpen}
           setClientsOpen={setClientsOpen}
+          settingsOpen={settingsOpen}
+          setSettingsOpen={setSettingsOpen}
         />
       </div>
     </>
@@ -83,6 +88,8 @@ function SidebarContent({
   setMonitoringOpen,
   clientsOpen,
   setClientsOpen,
+  settingsOpen,
+  setSettingsOpen,
   onNavClick
 }: any) {
   const navigate = useNavigate()
@@ -128,48 +135,6 @@ function SidebarContent({
             </button>
           </li>
 
-          {/* MONITORAMENTO */}
-          <li>
-
-            <button
-              onClick={() => setMonitoringOpen(!monitoringOpen)}
-              className="flex w-full items-center justify-between px-3 py-2 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-lg"
-            >
-              <span className="flex items-center gap-3 min-w-0">
-                <Activity className="size-4 sm:size-5 flex-shrink-0" />
-                <span className="truncate">Monitoramento</span>
-              </span>
-
-              <ChevronDownIcon className={classNames(
-                monitoringOpen ? "rotate-180" : "",
-                "size-4 transition flex-shrink-0"
-              )} />
-            </button>
-
-            {monitoringOpen && (
-              <ul className="ml-6 sm:ml-8 mt-2 space-y-2">
-
-                <li>
-                  <button
-                    onClick={() => handleNavigation('/monitoring')}
-                    className={classNames(
-                      isActive('/monitoring')
-                        ? 'text-amber-600 font-medium'
-                        : 'text-gray-600 hover:text-amber-600',
-                      'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors'
-                    )}
-                  >
-                    <Activity className="size-3 sm:size-4 flex-shrink-0" />
-                    <span>Tempo Real</span>
-                  </button>
-                </li>
-
-              </ul>
-            )}
-
-          </li>
-
-
           {/* ALARMES */}
           <li>
             <button
@@ -194,6 +159,24 @@ function SidebarContent({
             </button>
           </li>
 
+        {/*          
+          ANÁLISE------
+          <li>
+            <button
+              onClick={() => handleNavigation('/analytics')}
+              className={classNames(
+                isActive('/analytics')
+                  ? 'bg-blue-50 text-blue-600'
+                  : 'text-gray-700 hover:bg-gray-100',
+                'flex items-center gap-3 px-3 py-2 rounded-lg w-full text-xs sm:text-sm transition-colors'
+              )}
+            >
+              <LineChart className="size-4 sm:size-5 flex-shrink-0" />
+              <span>Análise</span>
+            </button>
+          </li>
+
+          */}
 
           {/* CLIENTES */}
           <li>
@@ -280,24 +263,6 @@ function SidebarContent({
 
           </li>
 
-
-          {/* ANALISE */}
-          <li>
-            <button
-              onClick={() => handleNavigation('/analytics')}
-              className={classNames(
-                isActive('/analytics')
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-700 hover:bg-gray-100',
-                'flex items-center gap-3 px-3 py-2 rounded-lg w-full text-xs sm:text-sm transition-colors'
-              )}
-            >
-              <LineChart className="size-4 sm:size-5 flex-shrink-0" />
-              <span>Análise</span>
-            </button>
-          </li>
-
-
           {/* ORDEM DE SERVICO */}
           <li>
             <button
@@ -313,7 +278,6 @@ function SidebarContent({
               <span>Ordem de Serviço</span>
             </button>
           </li>
-
 
           {/* FINANCEIRO */}
           <li>
@@ -335,17 +299,41 @@ function SidebarContent({
           {/* CONFIG */}
           <li>
             <button
-              onClick={() => handleNavigation('/settings')}
-              className={classNames(
-                isActive('/settings')
-                  ? 'bg-gray-100 text-gray-900'
-                  : 'text-gray-700 hover:bg-gray-100',
-                'flex items-center gap-3 px-3 py-2 rounded-lg w-full text-xs sm:text-sm transition-colors'
-              )}
+              onClick={() => setSettingsOpen(!settingsOpen)}
+              className="flex w-full items-center justify-between px-3 py-2 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-lg"
             >
-              <Settings className="size-4 sm:size-5 flex-shrink-0" />
-              <span>Configurações</span>
+              <span className="flex items-center gap-3 min-w-0">
+                <Settings className="size-4 sm:size-5 flex-shrink-0" />
+                <span className="truncate">Configurações</span>
+              </span>
+
+              <ChevronDownIcon className={classNames(
+                settingsOpen ? "rotate-180" : "",
+                "size-4 transition flex-shrink-0"
+              )} />
             </button>
+
+            {settingsOpen && (
+              <ul className="ml-6 sm:ml-8 mt-2 space-y-2">
+
+                <li>
+                  <button
+                    onClick={() => handleNavigation('/users')}
+                    className={classNames(
+                      isActive('/users')
+                        ? 'text-amber-600 font-medium'
+                        : 'text-gray-600 hover:text-amber-600',
+                      'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors mb-4'
+                    )}
+                  >
+                    <User className="size-3 sm:size-4 flex-shrink-0 " />
+                    <span>Usuários</span>
+                  </button>
+                </li>
+
+              </ul>
+            )}
+
           </li>
 
         </ul>

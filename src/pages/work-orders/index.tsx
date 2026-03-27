@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { ChevronRight} from 'lucide-react'
 import { Button } from "../../components/ui/button";
 import {
   Table,
@@ -102,9 +103,8 @@ export default function WorkOrdersPage() {
         {/* Breadcrumb */}
         <div className="mb-6 text-sm text-gray-600">
           <nav className="flex" aria-label="Breadcrumb">
-            <span className="mr-2">Manutenção</span>
-            <span className="mr-2">/</span>
-            <span className="text-gray-900 font-semibold">Ordens de Serviço</span>
+          <span className="text-gray-900 font-semibold">Ordens de Serviço</span>
+          <ChevronRight className="size-4" />
           </nav>
         </div>
 

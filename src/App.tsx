@@ -14,6 +14,9 @@ import WorkOrdersPage from './pages/work-orders/index';
 import WorkOrderCreatePage from './pages/work-orders/create'; 
 import WorkOrderEditPage from './pages/work-orders/edit';
 import WorkOrderConclusionPage from './pages/work-orders/conclusion';
+import UserList from './pages/user/index';
+import UserCreate from './pages/user/create';
+import UserEdit from './pages/user/edit';
 
 
 const router = createBrowserRouter([
@@ -79,6 +82,18 @@ const router = createBrowserRouter([
           {
             path: "/maintenance/conclusion/:id",
             element: <WorkOrderConclusionPage />,
+          },
+          {
+            path: "/users",
+            element: <UserList />,
+          },
+          {
+            path: "/users/create",
+            element: <UserCreate />,
+          },
+          {
+            path: "/users/edit/:id",
+            element: <UserEdit />,
           },
           {
             path: "/financial",

@@ -47,9 +47,7 @@ export default function WorkOrderCreatePage() {
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
       {/* Breadcrumb */}
       <div className="mb-6 flex items-center gap-2 text-sm text-gray-600">
-        <button onClick={() => navigate("/maintenance")} className="hover:text-gray-900">Manutenção</button>
-        <ChevronRight className="size-4" />
-        <button onClick={() => navigate("/maintenance")} className="hover:text-gray-900">Ordens de Serviço</button>
+         <span className="text-gray-900 font-semibold">Ordens de Serviço</span>
         <ChevronRight className="size-4" />
         <span className="text-gray-900 font-semibold">Criar Ordem de Serviço</span>
       </div>

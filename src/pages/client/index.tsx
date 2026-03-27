@@ -182,7 +182,7 @@ export default function ClientPage() {
 
               <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="user_id_user">User</Label>
+                  <Label htmlFor="user_id_user">Cliente</Label>
                   <select
                     id="user_id_user"
                     className="w-full rounded-md border bg-white px-3 py-2 text-sm"
@@ -201,7 +201,7 @@ export default function ClientPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="comp_id_company">Company</Label>
+                  <Label htmlFor="comp_id_company">Empresa</Label>
                   <select
                     id="comp_id_company"
                     className="w-full rounded-md border bg-white px-3 py-2 text-sm"
@@ -220,7 +220,7 @@ export default function ClientPage() {
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="id_external_client">External Client ID</Label>
+                  <Label htmlFor="id_external_client">ID Externo do Cliente</Label>
                   <Input id="id_external_client" placeholder="EXT-CLI-01" {...register("id_external_client")} />
                   {errors.id_external_client && (
                     <p className="text-sm text-red-500">{errors.id_external_client.message}</p>

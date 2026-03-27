@@ -146,11 +146,9 @@ export default function WorkOrderConclusionPage() {
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
       {/* Breadcrumb */}
       <div className="mb-6 flex items-center gap-2 text-sm text-gray-600">
-        <button onClick={() => navigate("/maintenance")} className="hover:text-gray-900">Manutenção</button>
+        <span className="text-gray-900 font-semibold">Ordens de Serviço</span>
         <ChevronRight className="size-4" />
-        <button onClick={() => navigate("/maintenance")} className="hover:text-gray-900">Ordens de Serviço</button>
-        <ChevronRight className="size-4" />
-        <span className="text-gray-900 font-semibold">Concluir {workOrder.wo_id}</span>
+        <span className="text-gray-900 font-semibold">Concluir</span>
       </div>
 
       <Card className="max-w-6xl mx-auto bg-white border-0 shadow-sm">
