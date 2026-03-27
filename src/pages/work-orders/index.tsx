@@ -16,11 +16,12 @@ import { phases, mockPlants, serviceReasons, serviceTypes, loadWorkOrders, saveW
 import type { WorkOrder } from "./types";
 
 interface Filters {
+  wo_id: string;
+  team_name: string;
   plant_id: string;
   service_type: string;
   service_reason: string;
   phase: string;
-  created_date_from: string;
   created_date_to: string;
   scheduled_date_from: string;
   scheduled_date_to: string;
@@ -32,11 +33,12 @@ export default function WorkOrdersPage() {
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<Filters>({
+    wo_id: "",
+    team_name: "",
     plant_id: "",
     service_type: "",
     service_reason: "",
     phase: "",
-    created_date_from: "",
     created_date_to: "",
     scheduled_date_from: "",
     scheduled_date_to: "",
@@ -62,16 +64,21 @@ export default function WorkOrdersPage() {
   };
 
   const filteredWorkOrders = workOrders.filter((wo) => {
+    const createdDate = new Date(wo.created_at);
+    const scheduledDate = wo.scheduled_date ? new Date(wo.scheduled_date) : null;
+    const concludedDate = wo.concluded_date ? new Date(wo.concluded_date) : null;
+
+    if (filters.wo_id && !wo.wo_id.toLowerCase().includes(filters.wo_id.toLowerCase())) return false;
+    if (filters.team_name && !(wo.team_name || "").toLowerCase().includes(filters.team_name.toLowerCase())) return false;
     if (filters.plant_id && wo.plant_id !== filters.plant_id) return false;
     if (filters.service_type && wo.service_type !== filters.service_type) return false;
     if (filters.service_reason && wo.service_reason !== filters.service_reason) return false;
     if (filters.phase && wo.phase !== filters.phase) return false;
-    if (filters.created_date_from && new Date(wo.created_at) < new Date(filters.created_date_from)) return false;
-    if (filters.created_date_to && new Date(wo.created_at) > new Date(filters.created_date_to)) return false;
-    if (filters.scheduled_date_from && wo.scheduled_date && new Date(wo.scheduled_date) < new Date(filters.scheduled_date_from)) return false;
-    if (filters.scheduled_date_to && wo.scheduled_date && new Date(wo.scheduled_date) > new Date(filters.scheduled_date_to)) return false;
-    if (filters.concluded_date_from && wo.concluded_date && new Date(wo.concluded_date) < new Date(filters.concluded_date_from)) return false;
-    if (filters.concluded_date_to && wo.concluded_date && new Date(wo.concluded_date) > new Date(filters.concluded_date_to)) return false;
+    if (filters.created_date_to && createdDate > new Date(filters.created_date_to)) return false;
+    if (filters.scheduled_date_from && (!scheduledDate || scheduledDate < new Date(filters.scheduled_date_from))) return false;
+    if (filters.scheduled_date_to && (!scheduledDate || scheduledDate > new Date(filters.scheduled_date_to))) return false;
+    if (filters.concluded_date_from && (!concludedDate || concludedDate < new Date(filters.concluded_date_from))) return false;
+    if (filters.concluded_date_to && (!concludedDate || concludedDate > new Date(filters.concluded_date_to))) return false;
     return true;
   });
 
@@ -84,11 +91,12 @@ export default function WorkOrdersPage() {
 
   const resetFilters = () => {
     setFilters({
+      wo_id: "",
+      team_name: "",
       plant_id: "",
       service_type: "",
       service_reason: "",
       phase: "",
-      created_date_from: "",
       created_date_to: "",
       scheduled_date_from: "",
       scheduled_date_to: "",
@@ -154,6 +162,28 @@ export default function WorkOrdersPage() {
             <CardContent className="bg-gray-50">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div className="space-y-2">
+                  <label className="text-sm font-medium">OS</label>
+                  <input
+                    type="text"
+                    value={filters.wo_id}
+                    onChange={(e) => handleFilterChange("wo_id", e.target.value)}
+                    placeholder="Ex: WO-001"
+                    className="w-full rounded-md border px-3 py-2 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Equipe</label>
+                  <input
+                    type="text"
+                    value={filters.team_name}
+                    onChange={(e) => handleFilterChange("team_name", e.target.value)}
+                    placeholder="Nome da equipe"
+                    className="w-full rounded-md border px-3 py-2 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-2">
                   <label className="text-sm font-medium">Usina</label>
                   <select
                     value={filters.plant_id}
@@ -218,11 +248,51 @@ export default function WorkOrdersPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Criação (De)</label>
+                  <label className="text-sm font-medium">Criação (Até)</label>
                   <input
                     type="date"
-                    value={filters.created_date_from}
-                    onChange={(e) => handleFilterChange("created_date_from", e.target.value)}
+                    value={filters.created_date_to}
+                    onChange={(e) => handleFilterChange("created_date_to", e.target.value)}
+                    className="w-full rounded-md border px-3 py-2 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Programação (De)</label>
+                  <input
+                    type="date"
+                    value={filters.scheduled_date_from}
+                    onChange={(e) => handleFilterChange("scheduled_date_from", e.target.value)}
+                    className="w-full rounded-md border px-3 py-2 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Programação (Até)</label>
+                  <input
+                    type="date"
+                    value={filters.scheduled_date_to}
+                    onChange={(e) => handleFilterChange("scheduled_date_to", e.target.value)}
+                    className="w-full rounded-md border px-3 py-2 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Conclusão (De)</label>
+                  <input
+                    type="date"
+                    value={filters.concluded_date_from}
+                    onChange={(e) => handleFilterChange("concluded_date_from", e.target.value)}
+                    className="w-full rounded-md border px-3 py-2 text-sm"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Conclusão (Até)</label>
+                  <input
+                    type="date"
+                    value={filters.concluded_date_to}
+                    onChange={(e) => handleFilterChange("concluded_date_to", e.target.value)}
                     className="w-full rounded-md border px-3 py-2 text-sm"
                   />
                 </div>
