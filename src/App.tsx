@@ -17,6 +17,7 @@ import WorkOrderConclusionPage from './pages/work-orders/conclusion';
 import UserList from './pages/user/index';
 import UserCreate from './pages/user/create';
 import UserEdit from './pages/user/edit';
+import FinancialPage from './pages/financial/index';
 
 
 const router = createBrowserRouter([
@@ -97,7 +98,7 @@ const router = createBrowserRouter([
           },
           {
             path: "/financial",
-            element: <DashboardPage />, // Placeholder
+            element: <FinancialPage />,
           },
           {
             path: "/settings",

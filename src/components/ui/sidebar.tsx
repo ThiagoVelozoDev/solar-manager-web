@@ -10,17 +10,14 @@ import {
 
 import {
   LayoutDashboard,
-  Activity,
   AlertTriangle,
   Building2,
   Factory,
   Cpu,
-  LineChart,
   ClipboardList,
   DollarSign,
   Settings,
-  User,
-  Sun
+  User
 } from "lucide-react"
 
 const classNames = (...classes: (string | false | undefined | null)[]) =>
@@ -32,7 +29,6 @@ interface SidebarProps {
 }
 
 export function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
-  const [monitoringOpen, setMonitoringOpen] = useState(true)
   const [clientsOpen, setClientsOpen] = useState(true)
   const [settingsOpen, setSettingsOpen] = useState(true)
 
@@ -54,8 +50,6 @@ export function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
             </TransitionChild>
 
             <SidebarContent
-              monitoringOpen={monitoringOpen}
-              setMonitoringOpen={setMonitoringOpen}
               clientsOpen={clientsOpen}
               setClientsOpen={setClientsOpen}
               settingsOpen={settingsOpen}
@@ -70,8 +64,6 @@ export function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
       {/* DESKTOP SIDEBAR */}
       <div className="hidden lg:flex lg:w-72 lg:flex-col">
         <SidebarContent
-          monitoringOpen={monitoringOpen}
-          setMonitoringOpen={setMonitoringOpen}
           clientsOpen={clientsOpen}
           setClientsOpen={setClientsOpen}
           settingsOpen={settingsOpen}
@@ -84,8 +76,6 @@ export function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
 
 
 function SidebarContent({
-  monitoringOpen,
-  setMonitoringOpen,
   clientsOpen,
   setClientsOpen,
   settingsOpen,
