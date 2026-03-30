@@ -1,25 +1,100 @@
 import { useParams, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ChevronRight, ArrowLeft } from 'lucide-react'
-import type { User } from './types'
-import { userSchema, updateUser, getUserById } from './types'
+import { toast } from 'sonner'
+import type { EditUser } from './types'
+import { editUserSchema } from './types'
+
+const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') || 'http://localhost:3000'
 
 export default function EditUser() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const user = id ? getUserById(id) : null
+  const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
-  } = useForm<User>({
-    resolver: zodResolver(userSchema),
-    defaultValues: user || undefined,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<EditUser>({
+    resolver: zodResolver(editUserSchema),
   })
 
-  if (!user) {
+  useEffect(() => {
+    if (!id) { setNotFound(true); setLoading(false); return }
+
+    fetch(`${API_BASE_URL}/users/${id}`)
+      .then(res => res.json().then(data => ({ ok: res.ok, data })))
+      .then(({ ok, data }) => {
+        if (!ok) { setNotFound(true); return }
+        const user = data.user
+        reset({
+          nome: user.name,
+          email: user.email,
+          cpf: user.cpf,
+          telefone: user.phone,
+          ativo: user.active ? 'Sim' : 'Não',
+          senha: '',
+        })
+      })
+      .catch(() => { setNotFound(true); toast.error('Não foi possível carregar o usuário') })
+      .finally(() => setLoading(false))
+  }, [id, reset])
+
+  const onSubmit = async (data: EditUser) => {
+    setSubmitError(null)
+    try {
+      const body: Record<string, unknown> = {
+        name: data.nome,
+        email: data.email,
+        cpf: data.cpf,
+        phone: data.telefone,
+        active: data.ativo,
+      }
+      if (data.senha && data.senha.trim() !== '') {
+        body.password = data.senha
+      }
+
+      const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+
+      const responseData = await response.json().catch(() => null)
+
+      if (!response.ok) {
+        throw new Error(responseData?.error || 'Não foi possível atualizar o usuário')
+      }
+
+      toast.success('Usuário atualizado com sucesso!')
+      navigate('/users')
+    } catch (error) {
+      console.error('Erro ao atualizar usuário:', error)
+      const msg = error instanceof Error ? error.message : 'Erro ao atualizar usuário'
+      setSubmitError(msg)
+      toast.error(msg)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+            <p className="text-gray-500 text-sm">Carregando usuário...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (notFound) {
     return (
       <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
         <div className="max-w-4xl mx-auto">
@@ -37,22 +112,12 @@ export default function EditUser() {
     )
   }
 
-  const onSubmit = (data: User) => {
-    try {
-      updateUser(id!, data)
-      navigate('/users')
-    } catch (error) {
-      console.error('Erro ao atualizar usuário:', error)
-    }
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
       <div className="max-w-4xl mx-auto">
 
         {/* BREADCRUMB */}
         <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 mb-6">
-          
           <span className="text-gray-700 font-medium">Configurações</span>
           <ChevronRight className="size-4" />
           <span className="text-gray-700 font-medium">Usuários</span>
@@ -74,6 +139,12 @@ export default function EditUser() {
         {/* FORM CARD */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-8">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+
+            {submitError && (
+              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {submitError}
+              </div>
+            )}
 
             {/* NOME */}
             <div>
@@ -142,7 +213,7 @@ export default function EditUser() {
             {/* SENHA */}
             <div>
               <label className="block text-sm font-medium text-gray-900 mb-2">
-                Senha *
+                Senha
               </label>
               <input
                 {...register('senha')}
@@ -178,15 +249,17 @@ export default function EditUser() {
               <button
                 type="button"
                 onClick={() => navigate('/users')}
+                disabled={isSubmitting}
                 className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-900 rounded-lg hover:bg-gray-200 font-medium transition-colors"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:shadow-lg font-medium transition-all"
+                disabled={isSubmitting}
+                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:shadow-lg font-medium transition-all disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Salvar Alterações
+                {isSubmitting ? 'Salvando...' : 'Salvar Alterações'}
               </button>
             </div>
 
@@ -197,3 +270,4 @@ export default function EditUser() {
     </div>
   )
 }
+

@@ -1,26 +1,58 @@
 import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ChevronRight, ArrowLeft } from 'lucide-react'
+import { toast } from 'sonner'
 import type { User } from './types'
-import { userSchema, saveUser } from './types'
+import { userSchema } from './types'
+
+const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') || 'http://localhost:3000'
 
 export default function CreateUser() {
   const navigate = useNavigate()
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<User>({
     resolver: zodResolver(userSchema),
   })
 
-  const onSubmit = (data: User) => {
+  const onSubmit = async (data: User) => {
+    setSubmitError(null)
+
     try {
-      saveUser(data)
+      const response = await fetch(`${API_BASE_URL}/users`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: data.nome,
+          email: data.email,
+          cpf: data.cpf,
+          phone: data.telefone,
+          password: data.senha,
+          active: data.ativo,
+        }),
+      })
+
+      const responseData = await response.json().catch(() => null)
+
+      if (!response.ok) {
+        const backendError = responseData?.error || 'Não foi possível salvar o usuário'
+        throw new Error(backendError)
+      }
+
+      toast.success('Usuário criado com sucesso!')
       navigate('/users')
     } catch (error) {
       console.error('Erro ao salvar usuário:', error)
+      const msg = error instanceof Error ? error.message : 'Erro ao salvar usuário'
+      setSubmitError(msg)
+      toast.error(msg)
     }
   }
 
@@ -52,6 +84,12 @@ export default function CreateUser() {
         {/* FORM CARD */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-8">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+
+            {submitError && (
+              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {submitError}
+              </div>
+            )}
 
             {/* NOME */}
             <div>
@@ -156,15 +194,17 @@ export default function CreateUser() {
               <button
                 type="button"
                 onClick={() => navigate('/users')}
+                disabled={isSubmitting}
                 className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-900 rounded-lg hover:bg-gray-200 font-medium transition-colors"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:shadow-lg font-medium transition-all"
+                disabled={isSubmitting}
+                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:shadow-lg font-medium transition-all disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Salvar Usuário
+                {isSubmitting ? 'Salvando...' : 'Salvar Usuário'}
               </button>
             </div>
 
