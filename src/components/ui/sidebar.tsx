@@ -17,8 +17,12 @@ import {
   ClipboardList,
   DollarSign,
   Settings,
-  User
+  User,
+  Workflow,
+  BrainCircuit,
+  LogOut
 } from "lucide-react"
+import { useAuth } from '../auth/AuthContext'
 
 const classNames = (...classes: (string | false | undefined | null)[]) =>
   classes.filter(Boolean).join(' ')
@@ -84,14 +88,17 @@ function SidebarContent({
 }: any) {
   const navigate = useNavigate()
   const location = useLocation()
+  const { user, hasPermission, logout } = useAuth()
 
   const handleNavigation = (path: string) => {
     navigate(path)
     onNavClick?.()
   }
 
+  const can = (permission: string) => hasPermission(permission)
+
   const isActive = (path: string) => {
-    return location.pathname === path
+    return location.pathname === path || location.pathname.startsWith(`${path}/`)
   }
 
   return (
@@ -104,11 +111,11 @@ function SidebarContent({
         <ul className="space-y-1.5 sm:space-y-2">
 
           {/* DASHBOARD */}
-          <li>
+          {can('dashboard:read') && <li>
             <button
-              onClick={() => handleNavigation('/')}
+              onClick={() => handleNavigation('/dashboard')}
               className={classNames(
-                isActive('/')
+                isActive('/dashboard')
                   ? 'bg-amber-50 text-amber-600'
                   : 'text-gray-700 hover:bg-gray-100',
                 'flex items-center gap-3 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold w-full transition-colors mt-4'
@@ -117,10 +124,10 @@ function SidebarContent({
               <LayoutDashboard className="size-4 sm:size-5 flex-shrink-0" />
               <span>Dashboard</span>
             </button>
-          </li>
+          </li>}
 
           {/* ALARMES */}
-          <li>
+          {can('alerts:read') && <li>
             <button
               onClick={() => handleNavigation('/alerts')}
               className={classNames(
@@ -141,11 +148,26 @@ function SidebarContent({
               </span>
 
             </button>
-          </li>
+          </li>}
+
+          {can('insights:read') && <li>
+            <button
+              onClick={() => handleNavigation('/insights')}
+              className={classNames(
+                isActive('/insights') || isActive('/analytics')
+                  ? 'bg-sky-50 text-sky-700'
+                  : 'text-gray-700 hover:bg-gray-100',
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-xs sm:text-sm font-medium w-full transition-colors'
+              )}
+            >
+              <BrainCircuit className="size-4 sm:size-5 flex-shrink-0" />
+              <span>Insights Inteligentes</span>
+            </button>
+          </li>}
 
         {/*          
           ANÁLISE------
-          <li>
+          {(can('clients:read') || can('plants:read') || can('inverters:read') || can('companies:read')) && <li>
             <button
               onClick={() => handleNavigation('/analytics')}
               className={classNames(
@@ -163,7 +185,7 @@ function SidebarContent({
           */}
 
           {/* CLIENTES */}
-          <li>
+          {(can('clients:read') || can('plants:read') || can('inverters:read') || can('companies:read')) && <li>
 
             <button
               onClick={() => setClientsOpen(!clientsOpen)}
@@ -183,7 +205,7 @@ function SidebarContent({
             {clientsOpen && (
               <ul className="ml-6 sm:ml-8 mt-2 space-y-2">
 
-                <li>
+                {can('clients:read') && <li>
                   <button
                     onClick={() => handleNavigation('/clients')}
                     className={classNames(
@@ -196,9 +218,9 @@ function SidebarContent({
                     <Factory className="size-3 sm:size-4 flex-shrink-0" />
                     <span>Clientes</span>
                   </button>
-                </li>
+                </li>}
 
-                <li>
+                {can('plants:read') && <li>
                   <button
                     onClick={() => handleNavigation('/plants')}
                     className={classNames(
@@ -211,8 +233,8 @@ function SidebarContent({
                     <Factory className="size-3 sm:size-4 flex-shrink-0" />
                     <span>Usinas</span>
                   </button>
-                </li>
-                <li>
+                </li>}
+                {can('inverters:read') && <li>
                   <button
                     onClick={() => handleNavigation('/inverter')}
                     className={classNames(
@@ -225,9 +247,9 @@ function SidebarContent({
                     <Cpu className="size-3 sm:size-4 flex-shrink-0" />
                     <span>Inversores</span>
                   </button>
-                </li>
+                </li>}
 
-                <li>
+                {can('companies:read') && <li>
                   <button
                     onClick={() => handleNavigation('/company')}
                     className={classNames(
@@ -240,15 +262,15 @@ function SidebarContent({
                     <Building2 className="size-3 sm:size-4 flex-shrink-0" />
                     <span>Empresas</span>
                   </button>
-                </li>
+                </li>}
 
               </ul>
             )}
 
-          </li>
+          </li>}
 
           {/* ORDEM DE SERVICO */}
-          <li>
+          {can('workorders:read') && <li>
             <button
               onClick={() => handleNavigation('/maintenance')}
               className={classNames(
@@ -261,10 +283,10 @@ function SidebarContent({
               <ClipboardList className="size-4 sm:size-5 flex-shrink-0" />
               <span>Ordem de Serviço</span>
             </button>
-          </li>
+          </li>}
 
           {/* FINANCEIRO */}
-          <li>
+          {can('financial:read') && <li>
             <button
               onClick={() => handleNavigation('/financial')}
               className={classNames(
@@ -277,11 +299,27 @@ function SidebarContent({
               <DollarSign className="size-4 sm:size-5 flex-shrink-0" />
               <span>Financeiro</span>
             </button>
-          </li>
+          </li>}
+
+          {/* SINCRONIZACAO */}
+          {can('sync:read') && <li>
+            <button
+              onClick={() => handleNavigation('/sync-monitor')}
+              className={classNames(
+                isActive('/sync-monitor')
+                  ? 'bg-cyan-50 text-cyan-700'
+                  : 'text-gray-700 hover:bg-gray-100',
+                'flex items-center gap-3 px-3 py-2 rounded-lg w-full text-xs sm:text-sm transition-colors'
+              )}
+            >
+              <Workflow className="size-4 sm:size-5 flex-shrink-0" />
+              <span>Sincronizacao</span>
+            </button>
+          </li>}
 
 
           {/* CONFIG */}
-          <li>
+          {(can('users:read') || can('roles:read')) && <li>
             <button
               onClick={() => setSettingsOpen(!settingsOpen)}
               className="flex w-full items-center justify-between px-3 py-2 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-lg"
@@ -300,7 +338,37 @@ function SidebarContent({
             {settingsOpen && (
               <ul className="ml-6 sm:ml-8 mt-2 space-y-2">
 
-                <li>
+                {can('roles:read') && <li>
+                  <button
+                    onClick={() => handleNavigation('/settings/profile')}
+                    className={classNames(
+                      isActive('/settings/profile')
+                        ? 'text-amber-600 font-medium'
+                        : 'text-gray-600 hover:text-amber-600',
+                      'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors'
+                    )}
+                  >
+                    <User className="size-3 sm:size-4 flex-shrink-0" />
+                    <span>Perfil</span>
+                  </button>
+                </li>}
+
+                {can('roles:read') && <li>
+                  <button
+                    onClick={() => handleNavigation('/settings/permissions')}
+                    className={classNames(
+                      isActive('/settings/permissions')
+                        ? 'text-amber-600 font-medium'
+                        : 'text-gray-600 hover:text-amber-600',
+                      'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors'
+                    )}
+                  >
+                    <Settings className="size-3 sm:size-4 flex-shrink-0" />
+                    <span>Permissões</span>
+                  </button>
+                </li>}
+
+                {can('users:read') && <li>
                   <button
                     onClick={() => handleNavigation('/users')}
                     className={classNames(
@@ -313,12 +381,12 @@ function SidebarContent({
                     <User className="size-3 sm:size-4 flex-shrink-0 " />
                     <span>Usuários</span>
                   </button>
-                </li>
+                </li>}
 
               </ul>
             )}
 
-          </li>
+          </li>}
 
         </ul>
 
@@ -333,11 +401,22 @@ function SidebarContent({
             </div>
 
             <div className="min-w-0">
-              <p className="text-xs sm:text-sm font-semibold truncate">Thiago Velozo</p>
-              <p className="text-xs text-gray-500 truncate">Administrador</p>
+              <p className="text-xs sm:text-sm font-semibold truncate">{user?.name ?? 'Usuário'}</p>
+              <p className="text-xs text-gray-500 truncate">{user?.roleName ?? 'Sem perfil'}</p>
             </div>
 
           </div>
+
+          <button
+            onClick={() => {
+              logout()
+              navigate('/')
+            }}
+            className="mt-3 inline-flex items-center gap-2 rounded-md border border-gray-300 px-2.5 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
+          >
+            <LogOut className="size-3.5" />
+            Sair
+          </button>
 
         </div>
 

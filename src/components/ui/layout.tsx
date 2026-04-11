@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Header } from "../ui/header";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "../ui/sidebar";
-import { Toaster } from "sonner";
 
 export function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -23,7 +22,6 @@ export function Layout() {
         </main>
 
       </div>
-      <Toaster richColors position="top-right" />
     </div>
   );
 }

@@ -7,13 +7,41 @@ export interface SolarPlant {
   id: string;
   name: string;
   location: string;
+  latitude?: number | null;
+  longitude?: number | null;
   capacity: number;
   currentGeneration: number;
   status: 'online' | 'warning' | 'offline';
+  statusReason?: string;
+  statusReasonSource?: 'api-derived' | 'fallback-derived';
+  statusAlarmCode?: string | null;
+  statusAlarmLevel?: string | null;
+  statusAlarmMessage?: string | null;
+  statusAlarmAt?: string | null;
+  hasRealData?: boolean;
+  dailyEfficiency?: number;
   efficiency: number;
   lastUpdate: string;
   monthlyGeneration: number;
   monthlyTarget: number;
+  todayEnergy?: number | null;
+  yearEnergy?: number | null;
+  totalEnergy?: number | null;
+  energyDataAt?: string | null;
+  energyDayLabel?: string | null;
+  energyMonthLabel?: string | null;
+  temperature?: number | null;
+  inverters?: Array<{
+    id: string;
+    name: string;
+    serialNumber: string | null;
+    brand: string | null;
+    model: string | null;
+    status: 'online' | 'warning' | 'offline';
+    powerKw: number;
+    efficiency: number;
+    lastMetricAt: string | null;
+  }>;
 }
 
 interface PlantCardProps {
@@ -91,6 +119,9 @@ export function PlantCard({ plant, onClick }: PlantCardProps) {
             <Progress value={monthlyProgress} className="h-2" />
             <span className="text-xs text-gray-500 mt-1 block">
               {monthlyProgress.toFixed(0)}% da meta atingida
+            </span>
+            <span className="text-xs text-gray-500 mt-1 block">
+              Referência: {plant.energyMonthLabel ?? 'sem mês/ano na API'}
             </span>
           </div>
 

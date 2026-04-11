@@ -11,9 +11,7 @@ import {
   MapPin,
   Zap,
   Sun,
-  CloudRain,
   Thermometer,
-  Wind,
   Activity,
   TrendingUp,
 } from "lucide-react";
@@ -40,21 +38,11 @@ export function PlantDetailsModal({ plant, isOpen, onClose }: PlantDetailsModalP
     offline: 'Offline',
   };
 
-  // Dados simulados para o modal
-  const weatherData = {
-    temperature: 28,
-    humidity: 65,
-    windSpeed: 12,
-    cloudCover: 15,
-    irradiance: 850,
-  };
-
-  const inverters = [
-    { id: 1, name: 'Inversor 1', status: 'online', power: 45.2, efficiency: 98 },
-    { id: 2, name: 'Inversor 2', status: 'online', power: 47.8, efficiency: 97 },
-    { id: 3, name: 'Inversor 3', status: 'online', power: 46.5, efficiency: 98 },
-    { id: 4, name: 'Inversor 4', status: 'warning', power: 38.1, efficiency: 92 },
-  ];
+  const hasOperationalData =
+    plant.temperature !== null && plant.temperature !== undefined ||
+    plant.todayEnergy !== null && plant.todayEnergy !== undefined ||
+    plant.yearEnergy !== null && plant.yearEnergy !== undefined ||
+    plant.totalEnergy !== null && plant.totalEnergy !== undefined;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -82,6 +70,32 @@ export function PlantDetailsModal({ plant, isOpen, onClose }: PlantDetailsModalP
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4 mt-4">
+            {plant.statusReason ? (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-amber-900">Motivo do status</p>
+                    <p className="mt-1 text-sm text-amber-800">{plant.statusReason}</p>
+                    {plant.statusAlarmMessage ? (
+                      <p className="mt-2 text-xs text-amber-900">
+                        Alarme: {plant.statusAlarmMessage}
+                        {plant.statusAlarmCode ? ` (código ${plant.statusAlarmCode})` : ''}
+                        {plant.statusAlarmLevel ? ` - nível ${plant.statusAlarmLevel}` : ''}
+                      </p>
+                    ) : null}
+                    {plant.statusAlarmAt ? (
+                      <p className="mt-1 text-xs text-amber-900">
+                        Última ocorrência do alarme: {new Date(plant.statusAlarmAt).toLocaleString('pt-BR')}
+                      </p>
+                    ) : null}
+                  </div>
+                  <Badge variant="outline" className="border-amber-300 bg-white text-amber-800">
+                    {plant.statusReasonSource === 'api-derived' ? 'Derivado da API' : 'Regra do dashboard'}
+                  </Badge>
+                </div>
+              </div>
+            ) : null}
+
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 border rounded-lg bg-white">
                 <div className="flex items-center gap-2 mb-2">
@@ -110,7 +124,7 @@ export function PlantDetailsModal({ plant, isOpen, onClose }: PlantDetailsModalP
               <div className="p-4 border rounded-lg bg-white">
                 <div className="flex items-center gap-2 mb-2">
                   <Activity className="size-5 text-purple-500" />
-                  <span className="font-medium">Geração Mensal</span>
+                  <span className="font-medium">Geração Mensal {plant.energyMonthLabel ? `(${plant.energyMonthLabel})` : ''}</span>
                 </div>
                 <p className="text-3xl font-bold">{plant.monthlyGeneration.toFixed(0)} MWh</p>
                 <Progress 
@@ -128,82 +142,126 @@ export function PlantDetailsModal({ plant, isOpen, onClose }: PlantDetailsModalP
                   <span className="font-medium">Horas de Sol</span>
                 </div>
                 <p className="text-3xl font-bold">6.8h</p>
-                <p className="text-sm text-gray-500 mt-1">Hoje</p>
+                <p className="text-sm text-gray-500 mt-1">Hoje - valor simulado</p>
               </div>
             </div>
           </TabsContent>
 
           <TabsContent value="equipment" className="space-y-4 mt-4">
-            <div className="space-y-3">
-              {inverters.map((inverter) => (
-                <div key={inverter.id} className="p-4 border rounded-lg bg-white">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${
-                        inverter.status === 'online' ? 'bg-green-500' : 'bg-amber-500'
-                      }`} />
-                      <span className="font-medium">{inverter.name}</span>
+            {!plant.inverters || plant.inverters.length === 0 ? (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                Nenhum equipamento encontrado para esta usina na API no momento.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {plant.inverters.map((inverter) => (
+                  <div key={inverter.id} className="p-4 border rounded-lg bg-white">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-3 h-3 rounded-full ${
+                          inverter.status === 'online' ? 'bg-green-500' : inverter.status === 'warning' ? 'bg-amber-500' : 'bg-red-500'
+                        }`} />
+                        <div>
+                          <span className="font-medium">{inverter.name}</span>
+                          <p className="text-xs text-gray-500">
+                            {inverter.brand || '-'} / {inverter.model || '-'}
+                            {inverter.serialNumber ? ` - SN: ${inverter.serialNumber}` : ''}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge variant="outline">
+                        {inverter.status === 'online' ? 'Online' : inverter.status === 'warning' ? 'Atenção' : 'Offline'}
+                      </Badge>
                     </div>
-                    <Badge variant="outline">
-                      {inverter.status === 'online' ? 'Online' : 'Atenção'}
-                    </Badge>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-500">Potência</p>
+                        <p className="text-xl font-bold">{inverter.powerKw.toFixed(2)} kW</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Eficiência</p>
+                        <p className="text-xl font-bold text-green-600">{inverter.efficiency.toFixed(1)}%</p>
+                      </div>
+                    </div>
+                    {inverter.lastMetricAt ? (
+                      <p className="mt-2 text-xs text-gray-500">
+                        Última métrica: {new Date(inverter.lastMetricAt).toLocaleString('pt-BR')}
+                      </p>
+                    ) : null}
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-500">Potência</p>
-                      <p className="text-xl font-bold">{inverter.power} kW</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Eficiência</p>
-                      <p className="text-xl font-bold text-green-600">{inverter.efficiency}%</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="weather" className="space-y-4 mt-4">
+            {!hasOperationalData ? (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                Não há dados operacionais suficientes para exibir condições desta usina no momento.
+              </div>
+            ) : null}
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 border rounded-lg bg-white">
                 <div className="flex items-center gap-2 mb-2">
                   <Thermometer className="size-5 text-red-500" />
                   <span className="font-medium">Temperatura</span>
                 </div>
-                <p className="text-3xl font-bold">{weatherData.temperature}°C</p>
+                <p className="text-3xl font-bold">
+                  {plant.temperature !== null && plant.temperature !== undefined
+                    ? `${plant.temperature.toFixed(1)}°C`
+                    : '--'}
+                </p>
               </div>
 
               <div className="p-4 border rounded-lg bg-white">
                 <div className="flex items-center gap-2 mb-2">
-                  <CloudRain className="size-5 text-blue-500" />
-                  <span className="font-medium">Umidade</span>
+                  <Zap className="size-5 text-amber-500" />
+                  <span className="font-medium">Energia Hoje {plant.energyDayLabel ? `(${plant.energyDayLabel})` : ''}</span>
                 </div>
-                <p className="text-3xl font-bold">{weatherData.humidity}%</p>
+                <p className="text-3xl font-bold">
+                  {plant.todayEnergy !== null && plant.todayEnergy !== undefined
+                    ? `${plant.todayEnergy.toFixed(2)} kWh`
+                    : '--'}
+                </p>
               </div>
 
               <div className="p-4 border rounded-lg bg-white">
                 <div className="flex items-center gap-2 mb-2">
-                  <Wind className="size-5 text-gray-500" />
-                  <span className="font-medium">Vento</span>
+                  <Activity className="size-5 text-blue-500" />
+                  <span className="font-medium">Energia no Ano</span>
                 </div>
-                <p className="text-3xl font-bold">{weatherData.windSpeed} km/h</p>
+                <p className="text-3xl font-bold">
+                  {plant.yearEnergy !== null && plant.yearEnergy !== undefined
+                    ? `${plant.yearEnergy.toFixed(2)} kWh`
+                    : '--'}
+                </p>
               </div>
 
               <div className="p-4 border rounded-lg bg-white">
                 <div className="flex items-center gap-2 mb-2">
-                  <Sun className="size-5 text-amber-500" />
-                  <span className="font-medium">Irradiância</span>
+                  <TrendingUp className="size-5 text-green-500" />
+                  <span className="font-medium">Energia Total</span>
                 </div>
-                <p className="text-3xl font-bold">{weatherData.irradiance} W/m²</p>
+                <p className="text-3xl font-bold">
+                  {plant.totalEnergy !== null && plant.totalEnergy !== undefined
+                    ? `${plant.totalEnergy.toFixed(2)} kWh`
+                    : '--'}
+                </p>
               </div>
 
               <div className="p-4 border rounded-lg col-span-2 bg-white">
-                <div className="flex items-center gap-2 mb-2">
-                  <CloudRain className="size-5 text-gray-400" />
-                  <span className="font-medium">Cobertura de Nuvens</span>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <Sun className="size-5 text-orange-500" />
+                    <span className="font-medium">Fonte dos dados</span>
+                  </div>
+                  <Badge variant="outline">
+                    {plant.hasRealData ? 'Dados reais da API' : 'Dados estimados'}
+                  </Badge>
                 </div>
-                <p className="text-3xl font-bold">{weatherData.cloudCover}%</p>
-                <Progress value={weatherData.cloudCover} className="mt-2 h-2" />
+                <p className="text-sm text-gray-600 mt-2">
+                  Última atualização recebida: {plant.lastUpdate}
+                </p>
               </div>
             </div>
           </TabsContent>

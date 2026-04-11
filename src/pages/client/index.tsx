@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -22,129 +22,290 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
-import { User, Plus, Edit2, Trash2 } from "lucide-react";
+import {
+  ArrowUpDown,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  Edit2,
+  Plus,
+  Search,
+  Trash2,
+  User,
+  X,
+} from "lucide-react";
+import { toast } from "sonner";
 
 interface Client {
   id: string;
-  cli_id_client: string;
-  user_id_user: string;
-  created_at: string;
-  updated_at: string;
-  comp_id_company: string;
-  id_external_client: string;
+  providerId: string;
+  idExternalClient: string;
+  cliNameClient: string | null;
+  userIdUser: number | null;
+  userName: string | null;
+  compIdCompany: number | null;
+  companyName: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
+interface CompanyOption {
+  id: string;
+  name: string;
+}
+
+interface UserOption {
+  id: number;
+  name: string;
+  email: string;
+}
+
+type SortDirection = "asc" | "desc";
+type ClientSortKey = "id" | "cliNameClient" | "userName" | "companyName" | "idExternalClient";
+
 const clientSchema = z.object({
-  user_id_user: z.string().min(1, "User ID é obrigatório"),
-  comp_id_company: z.string().min(1, "Company ID é obrigatório"),
-  id_external_client: z.string().min(1, "ID externo do cliente é obrigatório"),
+  providerId: z.string().min(1, "Provedor é obrigatório"),
+  cliNameClient: z.string().min(3, "Nome do cliente é obrigatório"),
+  userIdUser: z.string().optional(),
+  compIdCompany: z.string().optional(),
+  idExternalClient: z.string().min(1, "ID externo do cliente é obrigatório"),
 });
 
 type ClientFormData = z.infer<typeof clientSchema>;
 
-const mockUsers = [
-  { id: "USR-001", name: "João Silva" },
-  { id: "USR-002", name: "Maria Oliveira" },
-  { id: "USR-003", name: "Carlos Pereira" },
-];
+const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") || "http://localhost:3000";
 
-const mockCompanies = [
-  { id: "COMP-01", name: "Solis Energy" },
-  { id: "COMP-02", name: "Deye Energy" },
-  { id: "COMP-03", name: "Green Power" },
-];
+const normalizeText = (value: string | null | undefined) =>
+  (value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
 
-const initialClients: Client[] = [
-  {
-    id: "1",
-    cli_id_client: "CLI-001",
-    user_id_user: "USR-001",
-    created_at: "2026-01-01",
-    updated_at: "2026-02-01",
-    comp_id_company: "COMP-01",
-    id_external_client: "EXT-CLI-01",
-  },
-  {
-    id: "2",
-    cli_id_client: "CLI-002",
-    user_id_user: "USR-002",
-    created_at: "2026-01-15",
-    updated_at: "2026-02-10",
-    comp_id_company: "COMP-02",
-    id_external_client: "EXT-CLI-02",
-  },
-];
+const compareValues = (left: string | number, right: string | number, direction: SortDirection) => {
+  const result = typeof left === "number" && typeof right === "number"
+    ? left - right
+    : String(left).localeCompare(String(right), "pt-BR", { sensitivity: "base" });
+  return direction === "asc" ? result : -result;
+};
+
+function SortableHeader({
+  label,
+  active,
+  direction,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  direction: SortDirection;
+  onClick: () => void;
+}) {
+  return (
+    <button type="button" onClick={onClick} className="inline-flex items-center gap-1 font-medium text-left">
+      <span>{label}</span>
+      {active ? (
+        direction === "asc" ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />
+      ) : (
+        <ArrowUpDown className="size-4 text-gray-400" />
+      )}
+    </button>
+  );
+}
 
 export default function ClientPage() {
-  const [clients, setClients] = useState<Client[]>(initialClients);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [companies, setCompanies] = useState<CompanyOption[]>([]);
+  const [users, setUsers] = useState<UserOption[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingClientId, setEditingClientId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [providerFilter, setProviderFilter] = useState("all");
+  const [companyFilter, setCompanyFilter] = useState("all");
+  const [userFilter, setUserFilter] = useState("all");
+  const [sortKey, setSortKey] = useState<ClientSortKey>("id");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const {
     register,
     handleSubmit,
     reset,
     setValue,
-    formState: { errors },
-  } = useForm<ClientFormData>({ resolver: zodResolver(clientSchema), mode: "onTouched" });
+    formState: { errors, isSubmitting },
+  } = useForm<ClientFormData>({
+    resolver: zodResolver(clientSchema),
+    mode: "onTouched",
+    defaultValues: {
+      providerId: "solis",
+      cliNameClient: "",
+      userIdUser: "",
+      compIdCompany: "",
+      idExternalClient: "",
+    },
+  });
 
-  const onSubmit = (data: ClientFormData) => {
-    const now = new Date().toISOString().slice(0, 10);
+  const providers = useMemo(
+    () => Array.from(new Set(clients.map((item) => item.providerId).filter(Boolean))).sort((a, b) => a.localeCompare(b, "pt-BR")),
+    [clients],
+  );
 
-    if (editingClientId) {
-      setClients((prev) =>
-        prev.map((item) =>
-          item.id === editingClientId
-            ? {
-                ...item,
-                user_id_user: data.user_id_user,
-                comp_id_company: data.comp_id_company,
-                id_external_client: data.id_external_client,
-                updated_at: now,
-              }
-            : item,
-        ),
-      );
-    } else {
-      setClients((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          cli_id_client: `CLI-${Math.floor(100 + Math.random() * 900)}`,
-          user_id_user: data.user_id_user,
-          comp_id_company: data.comp_id_company,
-          id_external_client: data.id_external_client,
-          created_at: now,
-          updated_at: now,
-        },
+  const loadPageData = async () => {
+    setLoading(true);
+    try {
+      const [clientsResponse, companiesResponse, usersResponse] = await Promise.all([
+        fetch(`${API_BASE_URL}/clients`),
+        fetch(`${API_BASE_URL}/companies`),
+        fetch(`${API_BASE_URL}/users`),
       ]);
-    }
 
-    setIsDialogOpen(false);
-    setEditingClientId(null);
-    reset();
+      const [clientsData, companiesData, usersData] = await Promise.all([
+        clientsResponse.json().catch(() => null),
+        companiesResponse.json().catch(() => null),
+        usersResponse.json().catch(() => null),
+      ]);
+
+      if (!clientsResponse.ok) throw new Error(clientsData?.error || "Erro ao listar clientes");
+      if (!companiesResponse.ok) throw new Error(companiesData?.error || "Erro ao listar empresas");
+      if (!usersResponse.ok) throw new Error(usersData?.error || "Erro ao listar usuários");
+
+      setClients(clientsData?.clients ?? []);
+      setCompanies(companiesData?.companies ?? []);
+      setUsers(usersData?.users ?? []);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erro ao carregar clientes";
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPageData();
+  }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, providerFilter, companyFilter, userFilter, sortKey, sortDirection, itemsPerPage]);
+
+  const onSubmit = async (data: ClientFormData) => {
+    const payload = {
+      providerId: data.providerId,
+      cliNameClient: data.cliNameClient,
+      userIdUser: data.userIdUser || null,
+      compIdCompany: data.compIdCompany || null,
+      idExternalClient: data.idExternalClient,
+    };
+
+    try {
+      const response = await fetch(
+        editingClientId ? `${API_BASE_URL}/clients/${editingClientId}` : `${API_BASE_URL}/clients`,
+        {
+          method: editingClientId ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+      );
+
+      const responseData = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(responseData?.error || "Erro ao salvar cliente");
+
+      toast.success(editingClientId ? "Cliente atualizado com sucesso" : "Cliente cadastrado com sucesso");
+      setIsDialogOpen(false);
+      setEditingClientId(null);
+      reset();
+      await loadPageData();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erro ao salvar cliente";
+      toast.error(message);
+    }
   };
 
   const onEdit = (client: Client) => {
     setEditingClientId(client.id);
-    setValue("user_id_user", client.user_id_user);
-    setValue("comp_id_company", client.comp_id_company);
-    setValue("id_external_client", client.id_external_client);
+    setValue("providerId", client.providerId || "solis");
+    setValue("cliNameClient", client.cliNameClient ?? "");
+    setValue("userIdUser", client.userIdUser ? String(client.userIdUser) : "");
+    setValue("compIdCompany", client.compIdCompany ? String(client.compIdCompany) : "");
+    setValue("idExternalClient", client.idExternalClient);
     setIsDialogOpen(true);
   };
 
-  const getUserName = (id: string) => {
-    const user = mockUsers.find((u) => u.id === id);
-    return user ? `${user.name} (${user.id})` : id;
+  const onDelete = async (id: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/clients/${id}`, { method: "DELETE" });
+      const responseData = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(responseData?.error || "Erro ao excluir cliente");
+
+      toast.success("Cliente excluído com sucesso");
+      await loadPageData();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erro ao excluir cliente";
+      toast.error(message);
+    }
   };
 
-  const getCompanyName = (id: string) => {
-    const company = mockCompanies.find((c) => c.id === id);
-    return company ? `${company.name} (${company.id})` : id;
+  const toggleSort = (key: ClientSortKey) => {
+    if (sortKey === key) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+      return;
+    }
+    setSortKey(key);
+    setSortDirection(key === "id" ? "desc" : "asc");
   };
 
-  const onDelete = (id: string) => {
-    setClients((prev) => prev.filter((client) => client.id !== id));
+  const filteredClients = useMemo(() => {
+    const normalizedSearch = normalizeText(search);
+    return clients.filter((client) => {
+      const matchesSearch =
+        !normalizedSearch ||
+        normalizeText(client.id).includes(normalizedSearch) ||
+        normalizeText(client.cliNameClient).includes(normalizedSearch) ||
+        normalizeText(client.idExternalClient).includes(normalizedSearch) ||
+        normalizeText(client.userName).includes(normalizedSearch) ||
+        normalizeText(client.companyName).includes(normalizedSearch);
+
+      const matchesProvider = providerFilter === "all" || client.providerId === providerFilter;
+      const matchesCompany = companyFilter === "all" || String(client.compIdCompany ?? "") === companyFilter;
+      const matchesUser = userFilter === "all" || String(client.userIdUser ?? "") === userFilter;
+
+      return matchesSearch && matchesProvider && matchesCompany && matchesUser;
+    });
+  }, [clients, search, providerFilter, companyFilter, userFilter]);
+
+  const sortedClients = useMemo(() => {
+    return [...filteredClients].sort((left, right) => {
+      switch (sortKey) {
+        case "id":
+          return compareValues(Number(left.id), Number(right.id), sortDirection);
+        case "cliNameClient":
+          return compareValues(left.cliNameClient ?? "", right.cliNameClient ?? "", sortDirection);
+        case "userName":
+          return compareValues(left.userName ?? "", right.userName ?? "", sortDirection);
+        case "companyName":
+          return compareValues(left.companyName ?? "", right.companyName ?? "", sortDirection);
+        case "idExternalClient":
+          return compareValues(left.idExternalClient, right.idExternalClient, sortDirection);
+      }
+    });
+  }, [filteredClients, sortDirection, sortKey]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedClients.length / itemsPerPage));
+  const paginatedClients = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return sortedClients.slice(start, start + itemsPerPage);
+  }, [sortedClients, currentPage, itemsPerPage]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
+
+  const clearFilters = () => {
+    setSearch("");
+    setProviderFilter("all");
+    setCompanyFilter("all");
+    setUserFilter("all");
   };
 
   return (
@@ -157,17 +318,20 @@ export default function ClientPage() {
             </div>
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-black">Gestão de Clientes</h1>
-              <p className="text-sm text-gray-500">Cadastre, edite e exclua clientes</p>
+              <p className="text-sm text-gray-500">Cadastre, filtre e ordene clientes</p>
             </div>
           </div>
 
-          <Dialog open={isDialogOpen} onOpenChange={(open) => {
-            setIsDialogOpen(open);
-            if (!open) {
-              setEditingClientId(null);
-              reset();
-            }
-          }}>
+          <Dialog
+            open={isDialogOpen}
+            onOpenChange={(open) => {
+              setIsDialogOpen(open);
+              if (!open) {
+                setEditingClientId(null);
+                reset();
+              }
+            }}
+          >
             <DialogTrigger asChild>
               <Button className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white gap-2">
                 <Plus className="size-4" />
@@ -182,74 +346,107 @@ export default function ClientPage() {
 
               <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="user_id_user">Cliente</Label>
-                  <select
-                    id="user_id_user"
-                    className="w-full rounded-md border bg-white px-3 py-2 text-sm"
-                    {...register("user_id_user")}
-                  >
-                    <option value="">Selecione um usuário</option>
-                    {mockUsers.map((user) => (
-                      <option key={user.id} value={user.id}>
-                        {user.name} ({user.id})
-                      </option>
-                    ))}
-                  </select>
-                  {errors.user_id_user && (
-                    <p className="text-sm text-red-500">{errors.user_id_user.message}</p>
-                  )}
+                  <Label htmlFor="providerId">Provedor</Label>
+                  <Input id="providerId" placeholder="solis" {...register("providerId")} />
+                  {errors.providerId && <p className="text-sm text-red-500">{errors.providerId.message}</p>}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="comp_id_company">Empresa</Label>
-                  <select
-                    id="comp_id_company"
-                    className="w-full rounded-md border bg-white px-3 py-2 text-sm"
-                    {...register("comp_id_company")}
-                  >
-                    <option value="">Selecione uma empresa</option>
-                    {mockCompanies.map((company) => (
-                      <option key={company.id} value={company.id}>
-                        {company.name} ({company.id})
+                  <Label htmlFor="cliNameClient">Nome do Cliente</Label>
+                  <Input id="cliNameClient" placeholder="Cliente Solar" {...register("cliNameClient")} />
+                  {errors.cliNameClient && <p className="text-sm text-red-500">{errors.cliNameClient.message}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="userIdUser">Usuário</Label>
+                  <select id="userIdUser" className="w-full rounded-md border bg-white px-3 py-2 text-sm" {...register("userIdUser")}>
+                    <option value="">Selecione um usuário</option>
+                    {users.map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.name} ({user.email})
                       </option>
                     ))}
                   </select>
-                  {errors.comp_id_company && (
-                    <p className="text-sm text-red-500">{errors.comp_id_company.message}</p>
-                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="compIdCompany">Empresa</Label>
+                  <select id="compIdCompany" className="w-full rounded-md border bg-white px-3 py-2 text-sm" {...register("compIdCompany")}>
+                    <option value="">Selecione uma empresa</option>
+                    {companies.map((company) => (
+                      <option key={company.id} value={company.id}>
+                        {company.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="id_external_client">ID Externo do Cliente</Label>
-                  <Input id="id_external_client" placeholder="EXT-CLI-01" {...register("id_external_client")} />
-                  {errors.id_external_client && (
-                    <p className="text-sm text-red-500">{errors.id_external_client.message}</p>
-                  )}
+                  <Label htmlFor="idExternalClient">ID Externo do Cliente</Label>
+                  <Input id="idExternalClient" placeholder="EXT-CLI-01" {...register("idExternalClient")} />
+                  {errors.idExternalClient && <p className="text-sm text-red-500">{errors.idExternalClient.message}</p>}
                 </div>
 
                 <div className="md:col-span-2 flex justify-end gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setIsDialogOpen(false);
-                      setEditingClientId(null);
-                      reset();
-                    }}
-                  >
+                  <Button type="button" variant="outline" onClick={() => { setIsDialogOpen(false); setEditingClientId(null); reset(); }}>
                     Cancelar
                   </Button>
-                  <Button
-                    type="submit"
-                    className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white"
-                  >
-                    Salvar
+                  <Button type="submit" disabled={isSubmitting} className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white">
+                    {isSubmitting ? "Salvando..." : "Salvar"}
                   </Button>
                 </div>
               </form>
             </DialogContent>
           </Dialog>
         </div>
+
+        <Card className="bg-white mb-6">
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
+              <div className="relative xl:col-span-2">
+                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
+                <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por ID, nome, usuário, empresa ou ID externo" className="pl-9" />
+              </div>
+
+              <select className="w-full rounded-md border bg-white px-3 py-2 text-sm" value={providerFilter} onChange={(event) => setProviderFilter(event.target.value)}>
+                <option value="all">Todos os provedores</option>
+                {providers.map((provider) => (
+                  <option key={provider} value={provider}>{provider}</option>
+                ))}
+              </select>
+
+              <select className="w-full rounded-md border bg-white px-3 py-2 text-sm" value={userFilter} onChange={(event) => setUserFilter(event.target.value)}>
+                <option value="all">Todos os usuários</option>
+                {users.map((user) => (
+                  <option key={user.id} value={String(user.id)}>{user.name}</option>
+                ))}
+              </select>
+
+              <select className="w-full rounded-md border bg-white px-3 py-2 text-sm" value={companyFilter} onChange={(event) => setCompanyFilter(event.target.value)}>
+                <option value="all">Todas as empresas</option>
+                {companies.map((company) => (
+                  <option key={company.id} value={company.id}>{company.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="mt-3 flex flex-col sm:flex-row justify-between gap-3">
+              <Button type="button" variant="outline" onClick={clearFilters} className="w-full sm:w-auto gap-2 bg-white">
+                <X className="size-4" />
+                Limpar filtros
+              </Button>
+
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <span>Linhas por página</span>
+                <select className="rounded-md border bg-white px-3 py-2 text-sm" value={String(itemsPerPage)} onChange={(event) => setItemsPerPage(Number(event.target.value))}>
+                  {[5, 10, 20, 30].map((size) => (
+                    <option key={size} value={size}>{size}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card className="bg-white">
           <CardHeader>
@@ -260,43 +457,37 @@ export default function ClientPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-xs sm:text-sm">Client ID</TableHead>
-                    <TableHead className="text-xs sm:text-sm">Usuário</TableHead>
-                    <TableHead className="text-xs sm:text-sm">Empresa</TableHead>
-                    <TableHead className="text-xs sm:text-sm">External Client ID</TableHead>
-                    <TableHead className="text-xs sm:text-sm">Ações</TableHead>
+                    <TableHead className="text-xs sm:text-sm"><SortableHeader label="ID" active={sortKey === "id"} direction={sortDirection} onClick={() => toggleSort("id")} /></TableHead>
+                    <TableHead className="text-xs sm:text-sm"><SortableHeader label="Nome" active={sortKey === "cliNameClient"} direction={sortDirection} onClick={() => toggleSort("cliNameClient")} /></TableHead>
+                    <TableHead className="text-xs sm:text-sm"><SortableHeader label="Usuário" active={sortKey === "userName"} direction={sortDirection} onClick={() => toggleSort("userName")} /></TableHead>
+                    <TableHead className="text-xs sm:text-sm"><SortableHeader label="Empresa" active={sortKey === "companyName"} direction={sortDirection} onClick={() => toggleSort("companyName")} /></TableHead>
+                    <TableHead className="text-xs sm:text-sm"><SortableHeader label="ID Externo" active={sortKey === "idExternalClient"} direction={sortDirection} onClick={() => toggleSort("idExternalClient")} /></TableHead>
+                    <TableHead className="text-xs sm:text-sm text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {clients.length === 0 ? (
+                  {loading ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-gray-500 text-xs sm:text-sm">
-                        Nenhum cliente cadastrado
-                      </TableCell>
+                      <TableCell colSpan={6} className="text-center py-8 text-gray-500 text-xs sm:text-sm">Carregando clientes...</TableCell>
+                    </TableRow>
+                  ) : paginatedClients.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-gray-500 text-xs sm:text-sm">Nenhum cliente encontrado</TableCell>
                     </TableRow>
                   ) : (
-                    clients.map((client) => (
+                    paginatedClients.map((client) => (
                       <TableRow key={client.id} className="text-xs sm:text-sm hover:bg-gray-50">
-                        <TableCell>{client.cli_id_client}</TableCell>
-                        <TableCell>{getUserName(client.user_id_user)}</TableCell>
-                        <TableCell>{getCompanyName(client.comp_id_company)}</TableCell>
-                        <TableCell>{client.id_external_client}</TableCell>
+                        <TableCell>{client.id}</TableCell>
+                        <TableCell>{client.cliNameClient || "-"}</TableCell>
+                        <TableCell>{client.userName || "-"}</TableCell>
+                        <TableCell>{client.companyName || "-"}</TableCell>
+                        <TableCell>{client.idExternalClient}</TableCell>
                         <TableCell>
                           <div className="flex gap-2 justify-end">
-                            <button
-                              type="button"
-                              title="Editar"
-                              onClick={() => onEdit(client)}
-                              className="p-1.5 rounded-lg hover:bg-gray-100 transition"
-                            >
+                            <button type="button" title="Editar" onClick={() => onEdit(client)} className="p-1.5 rounded-lg hover:bg-gray-100 transition">
                               <Edit2 className="size-4 text-blue-500" />
                             </button>
-                            <button
-                              type="button"
-                              title="Excluir"
-                              onClick={() => onDelete(client.id)}
-                              className="p-1.5 rounded-lg hover:bg-red-50 transition"
-                            >
+                            <button type="button" title="Excluir" onClick={() => onDelete(client.id)} className="p-1.5 rounded-lg hover:bg-red-50 transition">
                               <Trash2 className="size-4 text-red-500" />
                             </button>
                           </div>
@@ -307,8 +498,18 @@ export default function ClientPage() {
                 </TableBody>
               </Table>
             </div>
-            <div className="mt-4 text-xs sm:text-sm text-gray-500">
-              Total de {clients.length} cliente{clients.length !== 1 ? "s" : ""} cadastrado{clients.length !== 1 ? "s" : ""}
+
+            <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs sm:text-sm text-gray-500">
+              <span>Total de {sortedClients.length} cliente{sortedClients.length !== 1 ? "s" : ""} filtrado{sortedClients.length !== 1 ? "s" : ""}</span>
+              <div className="flex items-center justify-between sm:justify-end gap-2">
+                <span>Página {currentPage} de {totalPages}</span>
+                <Button type="button" variant="outline" size="sm" onClick={() => setCurrentPage((page) => Math.max(1, page - 1))} disabled={currentPage === 1} className="bg-white">
+                  <ChevronLeft className="size-4" />
+                </Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))} disabled={currentPage === totalPages} className="bg-white">
+                  <ChevronRight className="size-4" />
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import {
@@ -13,24 +14,70 @@ import {
   Legend,
 } from "recharts";
 
+type EnergyUnit = 'kWh' | 'MWh' | 'GWh';
+
+const UNIT_DIVISORS: Record<EnergyUnit, number> = {
+  kWh: 1,
+  MWh: 1000,
+  GWh: 1000000,
+};
+
 interface EnergyChartProps {
   data: {
-    daily: Array<{ time: string; generation: number; target: number }>;
+    daily: Array<{ time: string; generation: number | null; target: number }>;
     monthly: Array<{ month: string; generation: number; target: number }>;
   };
 }
 
 export function EnergyChart({ data }: EnergyChartProps) {
+  const [unit, setUnit] = useState<EnergyUnit>('kWh');
+  const divisor = UNIT_DIVISORS[unit];
+
+  const monthlyConverted = data.monthly.map((point) => ({
+    ...point,
+    generation: Number((point.generation / divisor).toFixed(divisor === 1 ? 0 : 2)),
+    target: Number((point.target / divisor).toFixed(divisor === 1 ? 0 : 2)),
+  }));
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg sm:text-2xl">Geração de Energia</CardTitle>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <CardTitle className="text-lg sm:text-2xl">Geração de Energia</CardTitle>
+          <div className="flex items-center gap-1" role="group" aria-label="Selecionar unidade de medida">
+            <span className="text-xs text-gray-500 mr-1">Unidade:</span>
+            {(['kWh', 'MWh', 'GWh'] as EnergyUnit[]).map((u) => (
+              <button
+                key={u}
+                type="button"
+                onClick={() => setUnit(u)}
+                className={`cursor-pointer rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+                  unit === u
+                    ? 'bg-amber-500 text-white shadow-sm'
+                    : 'border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100'
+                }`}
+              >
+                {u}
+              </button>
+            ))}
+          </div>
+        </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="rounded-b-lg bg-gradient-to-b from-amber-50/35 to-white">
         <Tabs defaultValue="daily" className="w-full">
-          <TabsList className="grid w-full max-w-sm sm:max-w-md grid-cols-2">
-            <TabsTrigger value="daily" className="text-xs sm:text-sm">Hoje</TabsTrigger>
-            <TabsTrigger value="monthly" className="text-xs sm:text-sm">Mensal</TabsTrigger>
+          <TabsList className="grid w-full max-w-sm sm:max-w-md grid-cols-2 border border-amber-200 bg-amber-100/60 p-1">
+            <TabsTrigger
+              value="daily"
+              className="cursor-pointer text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm"
+            >
+              Hoje
+            </TabsTrigger>
+            <TabsTrigger
+              value="monthly"
+              className="cursor-pointer text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm"
+            >
+              Mensal
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="daily" className="mt-4 sm:mt-6">
@@ -72,6 +119,7 @@ export function EnergyChart({ data }: EnergyChartProps) {
                   fillOpacity={1}
                   fill="url(#colorGeneration)"
                   name="Geração (kW)"
+                  connectNulls={false}
                 />
                 <Line
                   type="monotone"
@@ -88,7 +136,7 @@ export function EnergyChart({ data }: EnergyChartProps) {
           
           <TabsContent value="monthly" className="mt-4 sm:mt-6">
             <ResponsiveContainer width="100%" height={250} minHeight={250}>
-              <LineChart data={data.monthly} margin={{ left: -20, right: 10, top: 10, bottom: 10 }}>
+              <LineChart data={monthlyConverted} margin={{ left: -20, right: 10, top: 10, bottom: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis 
                   dataKey="month" 
@@ -98,8 +146,8 @@ export function EnergyChart({ data }: EnergyChartProps) {
                 <YAxis 
                   stroke="#6b7280"
                   style={{ fontSize: '11px' }}
-                  width={40}
-                  label={{ value: 'MWh', angle: -90, position: 'insideLeft' }}
+                  width={50}
+                  label={{ value: unit, angle: -90, position: 'insideLeft' }}
                 />
                 <Tooltip 
                   contentStyle={{
@@ -108,6 +156,7 @@ export function EnergyChart({ data }: EnergyChartProps) {
                     borderRadius: '8px',
                     fontSize: '11px'
                   }}
+                  formatter={(value) => [`${value} ${unit}`, undefined]}
                 />
                 <Legend wrapperStyle={{ fontSize: '12px' }} />
                 <Line
@@ -116,7 +165,7 @@ export function EnergyChart({ data }: EnergyChartProps) {
                   stroke="#f59e0b"
                   strokeWidth={3}
                   dot={{ fill: '#f59e0b', r: 4 }}
-                  name="Geração (MWh)"
+                  name={`Geração (${unit})`}
                 />
                 <Line
                   type="monotone"
@@ -125,7 +174,7 @@ export function EnergyChart({ data }: EnergyChartProps) {
                   strokeWidth={2}
                   strokeDasharray="5 5"
                   dot={{ fill: '#3b82f6', r: 4 }}
-                  name="Meta (MWh)"
+                  name={`Meta (${unit})`}
                 />
               </LineChart>
             </ResponsiveContainer>

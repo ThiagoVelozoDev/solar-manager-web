@@ -1,23 +1,47 @@
 
-
 import './App.css';
+import { Suspense, lazy } from 'react';
+import type { ReactNode } from 'react';
 import { LoginPage } from './pages/login';
 import { createBrowserRouter } from 'react-router-dom';
 import { Layout } from './components/ui/layout';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { PermissionGate } from './components/auth/PermissionGate';
 
-import DashboardPage from './pages/dashboard';
-import CompanyPage from './pages/company';
-import InverterPage from './pages/inverter';
-import PlantPage from './pages/plant';
-import ClientPage from './pages/client';
-import WorkOrdersPage from './pages/work-orders/index'; 
-import WorkOrderCreatePage from './pages/work-orders/create'; 
-import WorkOrderEditPage from './pages/work-orders/edit';
-import WorkOrderConclusionPage from './pages/work-orders/conclusion';
-import UserList from './pages/user/index';
-import UserCreate from './pages/user/create';
-import UserEdit from './pages/user/edit';
-import FinancialPage from './pages/financial/index';
+const DashboardPage = lazy(() => import('./pages/dashboard'));
+const CompanyPage = lazy(() => import('./pages/company'));
+const InverterPage = lazy(() => import('./pages/inverter/index'));
+const PlantPage = lazy(() => import('./pages/plant/index'));
+const ClientPage = lazy(() => import('./pages/client/index'));
+const WorkOrdersPage = lazy(() => import('./pages/work-orders/index'));
+const WorkOrderCreatePage = lazy(() => import('./pages/work-orders/create'));
+const WorkOrderEditPage = lazy(() => import('./pages/work-orders/edit'));
+const WorkOrderConclusionPage = lazy(() => import('./pages/work-orders/conclusion'));
+const UserList = lazy(() => import('./pages/user/index'));
+const UserCreate = lazy(() => import('./pages/user/create'));
+const UserEdit = lazy(() => import('./pages/user/edit'));
+const FinancialPage = lazy(() => import('./pages/financial/index'));
+const SyncMonitorPage = lazy(() => import('./pages/sync'));
+const AlertsPage = lazy(() => import('./pages/alerts'));
+const InsightsPage = lazy(() => import('./pages/insights'));
+const SettingsProfilePage = lazy(() => import('./pages/settings/profile'));
+const SettingsPermissionsPage = lazy(() => import('./pages/settings/permissions'));
+
+function RouteFallback() {
+  return (
+    <div className="min-h-[40vh] flex items-center justify-center text-sm text-gray-500">
+      Carregando pagina...
+    </div>
+  );
+}
+
+function withSuspense(element: ReactNode) {
+  return <Suspense fallback={<RouteFallback />}>{element}</Suspense>;
+}
+
+function withPermission(permission: string, element: ReactNode) {
+  return withSuspense(<PermissionGate permission={permission}>{element}</PermissionGate>);
+}
 
 
 const router = createBrowserRouter([
@@ -26,83 +50,98 @@ const router = createBrowserRouter([
     element: <LoginPage />, // Página de login NÃO precisa de Layout
   },
   {
-    // Comentado até você implementar o contexto de autenticação
-    // element: <PrivateRoute />, // Protegerá as rotas abaixo no futuro
+    element: <ProtectedRoute />,
     children: [
       {
         element: <Layout />, // Layout com Sidebar/Header
         children: [
           {
             path: "/dashboard",
-            element: <DashboardPage />,
+            element: withPermission('dashboard:read', <DashboardPage />),
           },
           {
             path: "/company",
-            element: <CompanyPage />,
+            element: withPermission('companies:read', <CompanyPage />),
           },
           {
             path: "/inverter",
-            element: <InverterPage />,
+            element: withPermission('inverters:read', <InverterPage />),
           },
           {
             path: "/monitoring",
-            element: <DashboardPage />, // Placeholder
+            element: withPermission('dashboard:read', <DashboardPage />), // Placeholder
           },
           {
             path: "/alerts",
-            element: <DashboardPage />, // Placeholder
+            element: withPermission('alerts:read', <AlertsPage />),
           },
           {
             path: "/clients",
-            element: <ClientPage />,
+            element: withPermission('clients:read', <ClientPage />),
           },
           {
             path: "/plants",
-            element: <PlantPage />,
+            element: withPermission('plants:read', <PlantPage />),
           },
           {
             path: "/equipment",
-            element: <DashboardPage />, // Placeholder
+            element: withPermission('dashboard:read', <DashboardPage />), // Placeholder
           },
           {
             path: "/analytics",
-            element: <DashboardPage />, // Placeholder
+            element: withPermission('insights:read', <InsightsPage />),
+          },
+          {
+            path: "/insights",
+            element: withPermission('insights:read', <InsightsPage />),
           },
           {
             path: "/maintenance",
-            element: <WorkOrdersPage />,
+            element: withPermission('workorders:read', <WorkOrdersPage />),
           },
           {
             path: "/maintenance/create",
-            element: <WorkOrderCreatePage />,
+            element: withPermission('workorders:write', <WorkOrderCreatePage />),
           },
           {
             path: "/maintenance/edit/:id",
-            element: <WorkOrderEditPage />,
+            element: withPermission('workorders:write', <WorkOrderEditPage />),
           },
           {
             path: "/maintenance/conclusion/:id",
-            element: <WorkOrderConclusionPage />,
+            element: withPermission('workorders:write', <WorkOrderConclusionPage />),
           },
           {
             path: "/users",
-            element: <UserList />,
+            element: withPermission('users:read', <UserList />),
           },
           {
             path: "/users/create",
-            element: <UserCreate />,
+            element: withPermission('users:write', <UserCreate />),
           },
           {
             path: "/users/edit/:id",
-            element: <UserEdit />,
+            element: withPermission('users:write', <UserEdit />),
           },
           {
             path: "/financial",
-            element: <FinancialPage />,
+            element: withPermission('financial:read', <FinancialPage />),
+          },
+          {
+            path: "/sync-monitor",
+            element: withPermission('sync:read', <SyncMonitorPage />),
           },
           {
             path: "/settings",
-            element: <DashboardPage />, // Placeholder
+            element: withPermission('roles:read', <SettingsProfilePage />),
+          },
+          {
+            path: "/settings/profile",
+            element: withPermission('roles:read', <SettingsProfilePage />),
+          },
+          {
+            path: "/settings/permissions",
+            element: withPermission('roles:read', <SettingsPermissionsPage />),
           },
         ],
       },

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ChevronRight, Plus, CheckCircle2, Clock3, AlertCircle, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 import type { SubscriptionClient, SubscriptionClientForm } from './types'
 import {
   subscriptionClientSchema,
@@ -52,6 +53,7 @@ export default function FinancialPage() {
     const payload = subscriptionClientSchema.parse(data)
     saveSubscriptionClient(payload)
     setClients(getSubscriptionClients())
+    toast.success('Cliente cadastrado com sucesso')
     setShowForm(false)
     reset({
       plan: 'Profissional',
@@ -102,18 +104,21 @@ export default function FinancialPage() {
   const markAsPaid = (id: string) => {
     updateSubscriptionClient(id, { paymentStatus: 'Pago' })
     setClients(getSubscriptionClients())
+    toast.success('Pagamento confirmado')
   }
 
   const markAsPending = (client: SubscriptionClient) => {
     const fallback = compareDate(client.nextBillingDate) as 'Pendente' | 'Atrasado'
     updateSubscriptionClient(client.id!, { paymentStatus: fallback })
     setClients(getSubscriptionClients())
+    toast.success('Status atualizado')
   }
 
   const removeClient = (id: string) => {
     if (!confirm('Deseja remover este cliente da carteira de assinaturas?')) return
     deleteSubscriptionClient(id)
     setClients(getSubscriptionClients())
+    toast.success('Cliente removido com sucesso')
   }
 
   return (

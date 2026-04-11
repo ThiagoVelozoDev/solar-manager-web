@@ -7,6 +7,7 @@ import { Button } from "../../components/ui/button";
 import { ChevronRight } from "lucide-react";
 import { loadWorkOrders, saveWorkOrders, mockPlants, mockTeams, serviceTypes, serviceReasons, workOrderSchema } from "./types";
 import type { WorkOrder, WorkOrderFormData } from "./types";
+import { toast } from 'sonner';
 
 export default function WorkOrderCreatePage() {
   const navigate = useNavigate();
@@ -40,6 +41,7 @@ export default function WorkOrderCreatePage() {
     };
 
     saveWorkOrders([...current, newOrder]);
+    toast.success('Ordem de Serviço criada com sucesso');
     navigate("/maintenance");
   };
 

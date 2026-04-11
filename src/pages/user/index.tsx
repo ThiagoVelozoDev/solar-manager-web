@@ -127,6 +127,7 @@ export default function UserList() {
                       <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-900">Email</th>
                       <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-900">CPF</th>
                       <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-900">Telefone</th>
+                      <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-900">Perfil</th>
                       <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-900">Status</th>
                       <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-900">Ações</th>
                     </tr>
@@ -138,6 +139,7 @@ export default function UserList() {
                         <td className="px-4 sm:px-6 py-3 text-sm text-gray-600">{user.email}</td>
                         <td className="px-4 sm:px-6 py-3 text-sm text-gray-600">{user.cpf}</td>
                         <td className="px-4 sm:px-6 py-3 text-sm text-gray-600">{user.phone}</td>
+                        <td className="px-4 sm:px-6 py-3 text-sm text-gray-700">{user.role?.label ?? '-'}</td>
                         <td className="px-4 sm:px-6 py-3 text-sm">
                           <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
                             user.active

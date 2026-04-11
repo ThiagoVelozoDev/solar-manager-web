@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import { Filter, Plus, Trash2, Wrench } from "lucide-react";
+import { toast } from 'sonner';
 import { phases, mockPlants, serviceReasons, serviceTypes, loadWorkOrders, saveWorkOrders } from "./types";
 import type { WorkOrder } from "./types";
 
@@ -61,6 +62,7 @@ export default function WorkOrdersPage() {
   const handleDelete = (id: string) => {
     const next = workOrders.filter((wo) => wo.id !== id);
     persist(next);
+    toast.success('Ordem de Serviço excluída');
   };
 
   const filteredWorkOrders = workOrders.filter((wo) => {

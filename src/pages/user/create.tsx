@@ -1,17 +1,24 @@
 import { useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ChevronRight, ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
+import { apiFetch } from '../../lib/api'
 import type { User } from './types'
 import { userSchema } from './types'
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') || 'http://localhost:3000'
 
+interface RoleOption {
+  id: number
+  label: string
+}
+
 export default function CreateUser() {
   const navigate = useNavigate()
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [roles, setRoles] = useState<RoleOption[]>([])
   const {
     register,
     handleSubmit,
@@ -19,6 +26,19 @@ export default function CreateUser() {
   } = useForm<User>({
     resolver: zodResolver(userSchema),
   })
+
+  useEffect(() => {
+    const loadRoles = async () => {
+      try {
+        const response = await apiFetch<{ roles: Array<{ id: number; label: string; name: string }> }>('/roles')
+        setRoles(response.roles.map((role) => ({ id: role.id, label: role.label || role.name })))
+      } catch {
+        setRoles([])
+      }
+    }
+
+    void loadRoles()
+  }, [])
 
   const onSubmit = async (data: User) => {
     setSubmitError(null)
@@ -36,6 +56,7 @@ export default function CreateUser() {
           phone: data.telefone,
           password: data.senha,
           active: data.ativo,
+          roleId: data.roleId ? Number(data.roleId) : null,
         }),
       })
 
@@ -186,6 +207,27 @@ export default function CreateUser() {
               </select>
               {errors.ativo && (
                 <p className="mt-1 text-xs text-red-600">{errors.ativo.message}</p>
+              )}
+            </div>
+
+            {/* PERFIL */}
+            <div>
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                Perfil
+              </label>
+              <select
+                {...register('roleId')}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              >
+                <option value="">Selecione um perfil</option>
+                {roles.map((role) => (
+                  <option key={role.id} value={String(role.id)}>
+                    {role.label}
+                  </option>
+                ))}
+              </select>
+              {errors.roleId && (
+                <p className="mt-1 text-xs text-red-600">{errors.roleId.message}</p>
               )}
             </div>
 

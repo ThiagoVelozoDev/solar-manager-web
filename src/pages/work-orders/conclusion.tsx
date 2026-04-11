@@ -7,6 +7,7 @@ import { Checkbox } from "../../components/ui/checkbox";
 import { Upload, X, ChevronRight } from "lucide-react";
 import { loadWorkOrders, saveWorkOrders, diagnosticCodes, phases } from "./types";
 import type { WorkOrder, WorkOrderPhoto, DiagnosticCode } from "./types";
+import { toast } from 'sonner';
 
 export default function WorkOrderConclusionPage() {
   const { id } = useParams<{ id: string }>();
@@ -115,7 +116,7 @@ export default function WorkOrderConclusionPage() {
 
   const onConclude = () => {
     if (!photos.plant || !photos.inverter || !photos.team || !photos.vehicle) {
-      alert("Por favor, carregue as 4 fotos obrigatórias (Usina, Inversor, Equipe, Carro)");
+      toast.error('Por favor, carregue as 4 fotos obrigatórias (Usina, Inversor, Equipe, Carro)');
       return;
     }
 
@@ -137,6 +138,7 @@ export default function WorkOrderConclusionPage() {
         : wo
     );
     saveWorkOrders(updated);
+    toast.success('Ordem de Serviço concluída com sucesso');
     navigate("/maintenance");
   };
 

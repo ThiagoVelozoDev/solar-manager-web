@@ -4,10 +4,16 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ChevronRight, ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
+import { apiFetch } from '../../lib/api'
 import type { EditUser } from './types'
 import { editUserSchema } from './types'
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') || 'http://localhost:3000'
+
+interface RoleOption {
+  id: number
+  label: string
+}
 
 export default function EditUser() {
   const { id } = useParams<{ id: string }>()
@@ -15,6 +21,7 @@ export default function EditUser() {
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [roles, setRoles] = useState<RoleOption[]>([])
 
   const {
     register,
@@ -24,6 +31,19 @@ export default function EditUser() {
   } = useForm<EditUser>({
     resolver: zodResolver(editUserSchema),
   })
+
+  useEffect(() => {
+    const loadRoles = async () => {
+      try {
+        const response = await apiFetch<{ roles: Array<{ id: number; label: string; name: string }> }>('/roles')
+        setRoles(response.roles.map((role) => ({ id: role.id, label: role.label || role.name })))
+      } catch {
+        setRoles([])
+      }
+    }
+
+    void loadRoles()
+  }, [])
 
   useEffect(() => {
     if (!id) { setNotFound(true); setLoading(false); return }
@@ -40,6 +60,7 @@ export default function EditUser() {
           telefone: user.phone,
           ativo: user.active ? 'Sim' : 'Não',
           senha: '',
+          roleId: user.roleId != null ? String(user.roleId) : '',
         })
       })
       .catch(() => { setNotFound(true); toast.error('Não foi possível carregar o usuário') })
@@ -55,6 +76,7 @@ export default function EditUser() {
         cpf: data.cpf,
         phone: data.telefone,
         active: data.ativo,
+        roleId: data.roleId ? Number(data.roleId) : null,
       }
       if (data.senha && data.senha.trim() !== '') {
         body.password = data.senha
@@ -241,6 +263,27 @@ export default function EditUser() {
               </select>
               {errors.ativo && (
                 <p className="mt-1 text-xs text-red-600">{errors.ativo.message}</p>
+              )}
+            </div>
+
+            {/* PERFIL */}
+            <div>
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                Perfil
+              </label>
+              <select
+                {...register('roleId')}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              >
+                <option value="">Selecione um perfil</option>
+                {roles.map((role) => (
+                  <option key={role.id} value={String(role.id)}>
+                    {role.label}
+                  </option>
+                ))}
+              </select>
+              {errors.roleId && (
+                <p className="mt-1 text-xs text-red-600">{errors.roleId.message}</p>
               )}
             </div>
 

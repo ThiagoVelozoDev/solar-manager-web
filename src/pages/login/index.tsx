@@ -1,6 +1,7 @@
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 import { Sun, Eye, EyeOff, Mail, Lock } from "lucide-react"
+import { toast } from 'sonner'
 
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -9,6 +10,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "../../components/ui/button"
 import { Input } from "../../components/ui/input"
 import { Label } from "../../components/ui/label"
+import { apiFetch } from '../../lib/api'
+import { useAuth } from '../../components/auth/AuthContext'
 
 import backgroundImage from "../../assets/fundo.png"
 
@@ -22,12 +25,14 @@ type LoginFormData = z.infer<typeof loginSchema>
 
 export  function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [showPassword, setShowPassword] = useState(false)
+  const { setSession } = useAuth()
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -38,11 +43,46 @@ export  function LoginPage() {
 
 
 
-  const onSubmit = (data: LoginFormData) => {
-    console.log(data)
+  const onSubmit = async (data: LoginFormData) => {
+    try {
+      const response = await apiFetch<{
+        token: string
+        user: {
+          id: number
+          name: string
+          email: string
+          cpf: string
+          phone: string | null
+          active: boolean
+          roleId: number | null
+          roleName: string | null
+          permissions: string[]
+          createdAt: string
+          updatedAt: string
+        }
+      }>("/auth/login", {
+        method: 'POST',
+        body: JSON.stringify(data),
+      })
 
-    // simulação login
-    navigate("/dashboard")
+      setSession({ token: response.token, user: response.user })
+      toast.success(`Bem-vindo, ${response.user.name}!`)
+
+      const redirectTo = typeof location.state === 'object'
+        && location.state !== null
+        && 'from' in location.state
+        && typeof location.state.from === 'object'
+        && location.state.from !== null
+        && 'pathname' in location.state.from
+        && typeof location.state.from.pathname === 'string'
+        ? location.state.from.pathname
+        : '/dashboard'
+
+      navigate(redirectTo, { replace: true })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Nao foi possivel realizar o login'
+      toast.error(message)
+    }
   }
 
   return (
@@ -149,9 +189,10 @@ export  function LoginPage() {
             {/* LOGIN BUTTON */}
             <Button
               type="submit"
+              disabled={isSubmitting}
               className="w-full h-12 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-medium text-base"
             >
-              LOGIN
+              {isSubmitting ? 'ENTRANDO...' : 'LOGIN'}
             </Button>
           </form>
         </div>
