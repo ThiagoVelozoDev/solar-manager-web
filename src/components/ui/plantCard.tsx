@@ -42,12 +42,16 @@ export interface SolarPlant {
     efficiency: number;
     lastMetricAt: string | null;
   }>;
+  // Campo bruto vindo da Solis
+  solisState?: number | null;
 }
 
 interface PlantCardProps {
   plant: SolarPlant;
   onClick: () => void;
 }
+
+import { normalizeSolisAlarmState } from '../../lib/solisAlarmState';
 
 export function PlantCard({ plant, onClick }: PlantCardProps) {
   const statusColors = {
@@ -65,6 +69,8 @@ export function PlantCard({ plant, onClick }: PlantCardProps) {
   const generationPercentage = (plant.currentGeneration / plant.capacity) * 100;
   const monthlyProgress = (plant.monthlyGeneration / plant.monthlyTarget) * 100;
 
+  const solisStatus = plant.solisState !== undefined && plant.solisState !== null ? normalizeSolisAlarmState(plant.solisState) : null;
+
   return (
     <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={onClick}>
       <CardHeader className="pb-3">
@@ -76,9 +82,20 @@ export function PlantCard({ plant, onClick }: PlantCardProps) {
               {plant.location}
             </div>
           </div>
-          <Badge className={`${statusColors[plant.status]} text-white`}>
-            {statusLabels[plant.status]}
-          </Badge>
+          <div className="flex flex-col items-end gap-1">
+            <Badge className={`${statusColors[plant.status]} text-white`}>
+              {statusLabels[plant.status]}
+            </Badge>
+            {solisStatus && (
+              <Badge className={`text-xs mt-1 ${
+                solisStatus.color === 'red' ? 'bg-red-500' : solisStatus.color === 'yellow' ? 'bg-yellow-500' : 'bg-green-500'
+              }`}
+                title={`Status Solis bruto: ${plant.solisState}`}
+              >
+                Solis: {solisStatus.label}
+              </Badge>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent>

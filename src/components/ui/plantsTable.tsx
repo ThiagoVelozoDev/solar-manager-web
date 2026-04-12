@@ -13,6 +13,7 @@ import { Badge } from "../../components/ui/badge";
 import { Progress } from "../../components/ui/progress";
 import { Search, ArrowUpDown, ArrowRight, MapPin, CircleHelp } from "lucide-react";
 import { type SolarPlant } from "../ui/plantCard";
+import { normalizeSolisAlarmState } from '../../lib/solisAlarmState';
 
 interface PlantsTableProps {
   plants: SolarPlant[];
@@ -71,7 +72,10 @@ export function PlantsTable({ plants, onSelectPlant }: PlantsTableProps) {
     const matchesSearch =
       plant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       plant.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || plant.status === statusFilter;
+    // Garante comparação robusta de status
+    const statusValue = String(plant.status).toLowerCase();
+    const filterValue = String(statusFilter).toLowerCase();
+    const matchesStatus = filterValue === 'all' || statusValue === filterValue;
     return matchesSearch && matchesStatus;
   });
 
@@ -300,9 +304,12 @@ export function PlantsTable({ plants, onSelectPlant }: PlantsTableProps) {
                         </div>
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
-                        <Badge className={`${statusColors[plant.status]} text-white text-xs`}>
-                          {statusLabels[plant.status]}
-                        </Badge>
+                        <div className="flex flex-col items-start gap-0.5">
+                          <Badge className={`${statusColors[plant.status]} text-white text-xs`}>
+                            {statusLabels[plant.status]}
+                          </Badge>
+                          {/* Removido badge secundário Solis, exibe só status principal */}
+                        </div>
                       </TableCell>
                       <TableCell className="text-right whitespace-nowrap">
                         <div title={plant.hasRealData

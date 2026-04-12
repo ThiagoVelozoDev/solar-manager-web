@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { normalizeSolisAlarmState } from '../../lib/solisAlarmState';
 import { AlertTriangle, ChevronDown, ChevronUp, ChevronsUpDown, CircleAlert, Clock, Filter, RefreshCw, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiFetch } from '../../lib/api';
@@ -14,6 +15,7 @@ interface AlarmItem {
   alarmLevel: string | null;
   alarmType: string | null;
   status: string | null;
+  state?: number | null;
   message: string | null;
   messagePt: string | null;
   happenedAt: string | null;
@@ -61,7 +63,7 @@ export default function AlertsPage() {
   const [levelFilter, setLevelFilter] = useState<'all' | 'critical' | 'warning' | 'info'>('all');
   const [stationFilter, setStationFilter] = useState('all');
   const [messagePtFilter, setMessagePtFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState<AlarmStatusFilter>('all');
+  const [statusFilter, setStatusFilter] = useState<AlarmStatusFilter>('active');
   const [happenedDateFilter, setHappenedDateFilter] = useState('');
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(20);
@@ -478,9 +480,20 @@ export default function AlertsPage() {
                       <span className="line-clamp-2">{item.messagePt ?? '-'}</span>
                     </td>
                     <td className="px-3 py-2">
-                      <span className={`inline-flex rounded-full px-2 py-0.5 text-xs ${item.isActive ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                        {item.isActive ? 'Ativo' : 'Resolvido'}
-                      </span>
+                      {(() => {
+                        const state = typeof item.state === 'number' ? item.state : Number(item.state);
+                        const { label, color } = normalizeSolisAlarmState(state);
+                        const colorClass =
+                          color === 'red' ? 'bg-red-100 text-red-700' :
+                          color === 'yellow' ? 'bg-amber-100 text-amber-700' :
+                          color === 'green' ? 'bg-emerald-100 text-emerald-700' :
+                          'bg-gray-100 text-gray-700';
+                        return (
+                          <span className={`inline-flex rounded-full px-2 py-0.5 text-xs ${colorClass}`}>
+                            {label}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="px-3 py-2 text-gray-600">{formatDuration(getAlarmDurationMs(item))}</td>
                     <td className="px-3 py-2 text-gray-600">{new Date(item.happenedAt ?? item.lastSeenAt).toLocaleString('pt-BR')}</td>
