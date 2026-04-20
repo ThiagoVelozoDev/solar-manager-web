@@ -17,6 +17,7 @@ const WorkOrdersPage = lazy(() => import('./pages/work-orders/index'));
 const WorkOrderCreatePage = lazy(() => import('./pages/work-orders/create'));
 const WorkOrderEditPage = lazy(() => import('./pages/work-orders/edit'));
 const WorkOrderConclusionPage = lazy(() => import('./pages/work-orders/conclusion'));
+const WorkOrderPrintPage = lazy(() => import('./pages/work-orders/print'));
 const UserList = lazy(() => import('./pages/user/index'));
 const UserCreate = lazy(() => import('./pages/user/create'));
 const UserEdit = lazy(() => import('./pages/user/edit'));
@@ -26,6 +27,12 @@ const AlertsPage = lazy(() => import('./pages/alerts'));
 const InsightsPage = lazy(() => import('./pages/insights'));
 const SettingsProfilePage = lazy(() => import('./pages/settings/profile'));
 const SettingsPermissionsPage = lazy(() => import('./pages/settings/permissions'));
+const ServiceCodesPage = lazy(() => import('./pages/settings/service-codes/index'));
+const ServiceReasonsPage = lazy(() => import('./pages/settings/service-reasons/index'));
+const TeamsPage = lazy(() => import('./pages/settings/teams/index'));
+const DiagnosticsPage = lazy(() => import('./pages/settings/diagnostics/index'));
+const WorkOrderAnalysisPage = lazy(() => import('./pages/work-orders/analysis'));
+const WorkOrderConclusionEditPage = lazy(() => import('./pages/work-orders/conclusion-edit'));
 
 function RouteFallback() {
   return (
@@ -52,6 +59,10 @@ const router = createBrowserRouter([
   {
     element: <ProtectedRoute />,
     children: [
+      {
+        path: "/maintenance/print/:id",
+        element: withPermission('workorders:read', <WorkOrderPrintPage />),
+      },
       {
         element: <Layout />, // Layout com Sidebar/Header
         children: [
@@ -142,6 +153,30 @@ const router = createBrowserRouter([
           {
             path: "/settings/permissions",
             element: withPermission('roles:read', <SettingsPermissionsPage />),
+          },
+          {
+            path: "/settings/service-codes",
+            element: withPermission('service-config:read', <ServiceCodesPage />),
+          },
+          {
+            path: "/settings/service-reasons",
+            element: withPermission('service-config:read', <ServiceReasonsPage />),
+          },
+          {
+            path: "/settings/teams",
+            element: withPermission('service-config:read', <TeamsPage />),
+          },
+          {
+            path: "/settings/diagnostics",
+            element: withPermission('service-config:read', <DiagnosticsPage />),
+          },
+          {
+            path: "/maintenance/analysis",
+            element: withPermission('workorders:read', <WorkOrderAnalysisPage />),
+          },
+          {
+            path: "/maintenance/conclusion-edit/:id",
+            element: withPermission('workorders:write', <WorkOrderConclusionEditPage />),
           },
         ],
       },

@@ -350,7 +350,7 @@ export default function InsightsPage() {
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="Buscar insight, causa ou ação recomendada..."
-                  className="w-full rounded-xl border border-slate-300 py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-amber-400"
+                  className="w-full rounded-xl border border-slate-300 py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-[#008ed3]"
                 />
               </div>
               <select

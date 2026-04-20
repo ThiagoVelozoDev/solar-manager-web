@@ -20,9 +20,15 @@ import {
   User,
   Workflow,
   BrainCircuit,
-  LogOut
+  LogOut,
+  Wrench,
+  FileText,
+  Users2,
+  Stethoscope,
+  BarChart2
 } from "lucide-react"
 import { useAuth } from '../auth/AuthContext'
+import logoImage from '../../assets/logo 2.jpeg'
 
 const classNames = (...classes: (string | false | undefined | null)[]) =>
   classes.filter(Boolean).join(' ')
@@ -35,6 +41,8 @@ interface SidebarProps {
 export function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
   const [clientsOpen, setClientsOpen] = useState(true)
   const [settingsOpen, setSettingsOpen] = useState(true)
+  const [osConfigOpen, setOsConfigOpen] = useState(false)
+  const [osMenuOpen, setOsMenuOpen] = useState(true)
 
   return (
     <>
@@ -58,6 +66,10 @@ export function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
               setClientsOpen={setClientsOpen}
               settingsOpen={settingsOpen}
               setSettingsOpen={setSettingsOpen}
+              osConfigOpen={osConfigOpen}
+              setOsConfigOpen={setOsConfigOpen}
+              osMenuOpen={osMenuOpen}
+              setOsMenuOpen={setOsMenuOpen}
               onNavClick={() => setSidebarOpen(false)}
             />
 
@@ -72,6 +84,10 @@ export function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
           setClientsOpen={setClientsOpen}
           settingsOpen={settingsOpen}
           setSettingsOpen={setSettingsOpen}
+          osConfigOpen={osConfigOpen}
+          setOsConfigOpen={setOsConfigOpen}
+          osMenuOpen={osMenuOpen}
+          setOsMenuOpen={setOsMenuOpen}
         />
       </div>
     </>
@@ -84,6 +100,10 @@ function SidebarContent({
   setClientsOpen,
   settingsOpen,
   setSettingsOpen,
+  osConfigOpen,
+  setOsConfigOpen,
+  osMenuOpen,
+  setOsMenuOpen,
   onNavClick
 }: any) {
   const navigate = useNavigate()
@@ -104,7 +124,9 @@ function SidebarContent({
   return (
     <div className="flex grow flex-col overflow-y-auto border-r border-gray-200 bg-white px-4 sm:px-6">
 
-     
+      <div className="flex items-center justify-center py-5 border-b border-gray-100">
+        <img src={logoImage} alt="CM Energia" className="w-[95%] h-auto object-contain" />
+      </div>
 
       <nav className="flex flex-1 flex-col">
 
@@ -116,9 +138,9 @@ function SidebarContent({
               onClick={() => handleNavigation('/dashboard')}
               className={classNames(
                 isActive('/dashboard')
-                  ? 'bg-amber-50 text-amber-600'
+                  ? 'bg-[#e6f4fc] text-[#0055a3]'
                   : 'text-gray-700 hover:bg-gray-100',
-                'flex items-center gap-3 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold w-full transition-colors mt-4'
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold w-full transition-colors mt-2'
               )}
             >
               <LayoutDashboard className="size-4 sm:size-5 flex-shrink-0" />
@@ -155,7 +177,7 @@ function SidebarContent({
               onClick={() => handleNavigation('/insights')}
               className={classNames(
                 isActive('/insights') || isActive('/analytics')
-                  ? 'bg-sky-50 text-sky-700'
+                  ? 'bg-[#e6f4fc] text-[#008ed3]'
                   : 'text-gray-700 hover:bg-gray-100',
                 'flex items-center gap-3 rounded-lg px-3 py-2 text-xs sm:text-sm font-medium w-full transition-colors'
               )}
@@ -210,8 +232,8 @@ function SidebarContent({
                     onClick={() => handleNavigation('/clients')}
                     className={classNames(
                       isActive('/clients')
-                        ? 'text-amber-600 font-medium'
-                        : 'text-gray-600 hover:text-amber-600',
+                        ? 'text-[#0055a3] font-medium'
+                        : 'text-gray-600 hover:text-[#008ed3]',
                       'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors'
                     )}
                   >
@@ -225,8 +247,8 @@ function SidebarContent({
                     onClick={() => handleNavigation('/plants')}
                     className={classNames(
                       isActive('/plants')
-                        ? 'text-amber-600 font-medium'
-                        : 'text-gray-600 hover:text-amber-600',
+                        ? 'text-[#0055a3] font-medium'
+                        : 'text-gray-600 hover:text-[#008ed3]',
                       'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors'
                     )}
                   >
@@ -239,8 +261,8 @@ function SidebarContent({
                     onClick={() => handleNavigation('/inverter')}
                     className={classNames(
                       isActive('/inverter')
-                        ? 'text-amber-600 font-medium'
-                        : 'text-gray-600 hover:text-amber-600',
+                        ? 'text-[#0055a3] font-medium'
+                        : 'text-gray-600 hover:text-[#008ed3]',
                       'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors'
                     )}
                   >
@@ -254,8 +276,8 @@ function SidebarContent({
                     onClick={() => handleNavigation('/company')}
                     className={classNames(
                       isActive('/company')
-                        ? 'text-amber-600 font-medium'
-                        : 'text-gray-600 hover:text-amber-600',
+                        ? 'text-[#0055a3] font-medium'
+                        : 'text-gray-600 hover:text-[#008ed3]',
                       'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors'
                     )}
                   >
@@ -272,17 +294,47 @@ function SidebarContent({
           {/* ORDEM DE SERVICO */}
           {can('workorders:read') && <li>
             <button
-              onClick={() => handleNavigation('/maintenance')}
-              className={classNames(
-                isActive('/maintenance')
-                  ? 'bg-purple-50 text-purple-600'
-                  : 'text-gray-700 hover:bg-gray-100',
-                'flex items-center gap-3 px-3 py-2 rounded-lg w-full text-xs sm:text-sm transition-colors'
-              )}
+              onClick={() => setOsMenuOpen(!osMenuOpen)}
+              className="flex w-full items-center justify-between px-3 py-2 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-lg"
             >
-              <ClipboardList className="size-4 sm:size-5 flex-shrink-0" />
-              <span>Ordem de Serviço</span>
+              <span className="flex items-center gap-3 min-w-0">
+                <ClipboardList className="size-4 sm:size-5 flex-shrink-0" />
+                <span className="truncate">Ordem de Serviço</span>
+              </span>
+              <ChevronDownIcon className={classNames(osMenuOpen ? 'rotate-180' : '', 'size-4 transition flex-shrink-0')} />
             </button>
+            {osMenuOpen && (
+              <ul className="ml-6 sm:ml-8 mt-2 space-y-2">
+                <li>
+                  <button
+                    onClick={() => handleNavigation('/maintenance')}
+                    className={classNames(
+                      isActive('/maintenance') && !isActive('/maintenance/analysis')
+                        ? 'text-[#0055a3] font-medium'
+                        : 'text-gray-600 hover:text-[#008ed3]',
+                      'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors'
+                    )}
+                  >
+                    <ClipboardList className="size-3 sm:size-4 flex-shrink-0" />
+                    <span>Ordens de Serviço</span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => handleNavigation('/maintenance/analysis')}
+                    className={classNames(
+                      isActive('/maintenance/analysis')
+                        ? 'text-[#0055a3] font-medium'
+                        : 'text-gray-600 hover:text-[#008ed3]',
+                      'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors'
+                    )}
+                  >
+                    <BarChart2 className="size-3 sm:size-4 flex-shrink-0" />
+                    <span>Análise de Conclusão</span>
+                  </button>
+                </li>
+              </ul>
+            )}
           </li>}
 
           {/* FINANCEIRO */}
@@ -291,7 +343,7 @@ function SidebarContent({
               onClick={() => handleNavigation('/financial')}
               className={classNames(
                 isActive('/financial')
-                  ? 'bg-green-50 text-green-600'
+                  ? 'bg-emerald-50 text-[#00a971]'
                   : 'text-gray-700 hover:bg-gray-100',
                 'flex items-center gap-3 px-3 py-2 rounded-lg w-full text-xs sm:text-sm transition-colors'
               )}
@@ -307,7 +359,7 @@ function SidebarContent({
               onClick={() => handleNavigation('/sync-monitor')}
               className={classNames(
                 isActive('/sync-monitor')
-                  ? 'bg-cyan-50 text-cyan-700'
+                  ? 'bg-[#e6f4fc] text-[#0055a3]'
                   : 'text-gray-700 hover:bg-gray-100',
                 'flex items-center gap-3 px-3 py-2 rounded-lg w-full text-xs sm:text-sm transition-colors'
               )}
@@ -319,7 +371,7 @@ function SidebarContent({
 
 
           {/* CONFIG */}
-          {(can('users:read') || can('roles:read')) && <li>
+          {(can('users:read') || can('roles:read') || can('service-config:read')) && <li>
             <button
               onClick={() => setSettingsOpen(!settingsOpen)}
               className="flex w-full items-center justify-between px-3 py-2 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-lg"
@@ -343,8 +395,8 @@ function SidebarContent({
                     onClick={() => handleNavigation('/settings/profile')}
                     className={classNames(
                       isActive('/settings/profile')
-                        ? 'text-amber-600 font-medium'
-                        : 'text-gray-600 hover:text-amber-600',
+                        ? 'text-[#0055a3] font-medium'
+                        : 'text-gray-600 hover:text-[#008ed3]',
                       'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors'
                     )}
                   >
@@ -358,8 +410,8 @@ function SidebarContent({
                     onClick={() => handleNavigation('/settings/permissions')}
                     className={classNames(
                       isActive('/settings/permissions')
-                        ? 'text-amber-600 font-medium'
-                        : 'text-gray-600 hover:text-amber-600',
+                        ? 'text-[#0055a3] font-medium'
+                        : 'text-gray-600 hover:text-[#008ed3]',
                       'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors'
                     )}
                   >
@@ -373,14 +425,79 @@ function SidebarContent({
                     onClick={() => handleNavigation('/users')}
                     className={classNames(
                       isActive('/users')
-                        ? 'text-amber-600 font-medium'
-                        : 'text-gray-600 hover:text-amber-600',
-                      'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors mb-4'
+                        ? 'text-[#0055a3] font-medium'
+                        : 'text-gray-600 hover:text-[#008ed3]',
+                      'flex items-center gap-2 text-xs sm:text-sm w-full cursor-pointer transition-colors'
                     )}
                   >
                     <User className="size-3 sm:size-4 flex-shrink-0 " />
                     <span>Usuários</span>
                   </button>
+                </li>}
+
+                {can('service-config:read') && <li className="mt-2">
+                  <button
+                    onClick={() => setOsConfigOpen(!osConfigOpen)}
+                    className="flex w-full items-center justify-between text-xs sm:text-sm font-semibold text-gray-700 hover:text-[#008ed3] transition-colors"
+                  >
+                    <span className="flex items-center gap-2 min-w-0">
+                      <ClipboardList className="size-3 sm:size-4 flex-shrink-0" />
+                      <span className="truncate">Ordem de Serviço</span>
+                    </span>
+                    <ChevronDownIcon className={classNames(osConfigOpen ? 'rotate-180' : '', 'size-3 transition flex-shrink-0')} />
+                  </button>
+                  {osConfigOpen && (
+                    <ul className="ml-4 mt-1.5 space-y-1.5 mb-4">
+                      <li>
+                        <button
+                          onClick={() => handleNavigation('/settings/service-codes')}
+                          className={classNames(
+                            isActive('/settings/service-codes') ? 'text-[#0055a3] font-medium' : 'text-gray-600 hover:text-[#008ed3]',
+                            'flex items-center gap-2 text-xs w-full cursor-pointer transition-colors'
+                          )}
+                        >
+                          <Wrench className="size-3 flex-shrink-0" />
+                          <span>Serviços</span>
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          onClick={() => handleNavigation('/settings/service-reasons')}
+                          className={classNames(
+                            isActive('/settings/service-reasons') ? 'text-[#0055a3] font-medium' : 'text-gray-600 hover:text-[#008ed3]',
+                            'flex items-center gap-2 text-xs w-full cursor-pointer transition-colors'
+                          )}
+                        >
+                          <FileText className="size-3 flex-shrink-0" />
+                          <span>Motivos de Serviço</span>
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          onClick={() => handleNavigation('/settings/teams')}
+                          className={classNames(
+                            isActive('/settings/teams') ? 'text-[#0055a3] font-medium' : 'text-gray-600 hover:text-[#008ed3]',
+                            'flex items-center gap-2 text-xs w-full cursor-pointer transition-colors'
+                          )}
+                        >
+                          <Users2 className="size-3 flex-shrink-0" />
+                          <span>Equipes</span>
+                        </button>
+                      </li>
+                      <li>
+                        <button
+                          onClick={() => handleNavigation('/settings/diagnostics')}
+                          className={classNames(
+                            isActive('/settings/diagnostics') ? 'text-[#0055a3] font-medium' : 'text-gray-600 hover:text-[#008ed3]',
+                            'flex items-center gap-2 text-xs w-full cursor-pointer transition-colors'
+                          )}
+                        >
+                          <Stethoscope className="size-3 flex-shrink-0" />
+                          <span>Diagnósticos</span>
+                        </button>
+                      </li>
+                    </ul>
+                  )}
                 </li>}
 
               </ul>

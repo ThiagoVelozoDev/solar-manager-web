@@ -104,7 +104,7 @@ export function PlantCard({ plant, onClick }: PlantCardProps) {
           <div>
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <Zap className="size-4 text-amber-500" />
+                <Zap className="size-4 text-[#008ed3]" />
                 <span className="text-sm font-medium">Geração Atual</span>
               </div>
               <span className="font-bold text-lg">

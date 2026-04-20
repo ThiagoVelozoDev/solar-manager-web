@@ -11,430 +11,361 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/ca
 import { Input } from "../../components/ui/input";
 import { Badge } from "../../components/ui/badge";
 import { Progress } from "../../components/ui/progress";
-import { Search, ArrowUpDown, ArrowRight, MapPin, CircleHelp } from "lucide-react";
+import { Search, ArrowRight, MapPin, ChevronLeft, ChevronRight, Zap, Activity } from "lucide-react";
 import { type SolarPlant } from "../ui/plantCard";
-import { normalizeSolisAlarmState } from '../../lib/solisAlarmState';
 
 interface PlantsTableProps {
   plants: SolarPlant[];
   onSelectPlant: (plant: SolarPlant) => void;
 }
 
-function InfoHint({ text }: { text: string }) {
+const statusColors: Record<string, string> = {
+  online:  'bg-green-500',
+  warning: 'bg-amber-500',
+  offline: 'bg-red-500',
+};
+const statusLabels: Record<string, string> = {
+  online:  'Online',
+  warning: 'Atenção',
+  offline: 'Offline',
+};
+const statusBadge: Record<string, string> = {
+  online:  'bg-green-100 text-green-700 border-green-200',
+  warning: 'bg-amber-100 text-amber-700 border-amber-200',
+  offline: 'bg-red-100  text-red-700  border-red-200',
+};
+
+const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
+
+function EfficiencyText({ value }: { value: number }) {
+  const cls =
+    value >= 95 ? 'text-green-600' :
+    value >= 80 ? 'text-amber-600' :
+    'text-red-600';
+  return <span className={`font-semibold tabular-nums ${cls}`}>{value.toFixed(1)}%</span>;
+}
+
+function SourceBadge({ hasRealData }: { hasRealData: boolean }) {
   return (
-    <span className="group relative inline-flex">
-      <button
-        type="button"
-        className="inline-flex size-4 items-center justify-center rounded-full text-gray-400 transition-colors hover:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400"
-        aria-label="Ver explicação"
-      >
-        <CircleHelp className="size-3.5" />
-      </button>
-      <span className="pointer-events-none absolute right-0 top-5 z-30 w-56 whitespace-normal break-words rounded-md bg-gray-900 px-2 py-1.5 text-left text-[11px] leading-4 text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-        {text}
-      </span>
+    <span className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-medium leading-none ${
+      hasRealData ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+    }`}>
+      {hasRealData ? 'API' : 'Est.'}
     </span>
   );
 }
 
+function getGoogleMapsUrl(plant: SolarPlant): string | null {
+  if (Number.isFinite(plant.latitude) && Number.isFinite(plant.longitude)) {
+    return `https://www.google.com/maps?q=${plant.latitude},${plant.longitude}`;
+  }
+  const q = plant.location?.trim();
+  if (!q || q.toLowerCase() === 'localização não informada') return null;
+  return `https://www.google.com/maps?q=${encodeURIComponent(q)}`;
+}
+
+/* ─── Mobile card ─────────────────────────────────────── */
+function PlantCard({ plant, onClick }: { plant: SolarPlant; onClick: () => void }) {
+  const mapsUrl = getGoogleMapsUrl(plant);
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full text-left rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:border-[#008ed3] hover:shadow-md active:scale-[0.99]"
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="truncate font-semibold text-gray-900 text-sm">{plant.name}</p>
+          {mapsUrl ? (
+            <a
+              href={mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="mt-0.5 inline-flex items-center gap-1 text-xs text-[#008ed3] hover:underline"
+            >
+              <MapPin className="size-3" />
+              <span className="truncate max-w-[180px]">{plant.location}</span>
+            </a>
+          ) : (
+            <p className="mt-0.5 text-xs text-gray-400 truncate">{plant.location}</p>
+          )}
+        </div>
+        <span className={`shrink-0 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${statusBadge[plant.status]}`}>
+          <span className={`size-1.5 rounded-full ${statusColors[plant.status]}`} />
+          {statusLabels[plant.status]}
+        </span>
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-3">
+        <div className="rounded-lg bg-gray-50 px-3 py-2">
+          <div className="flex items-center gap-1 mb-1">
+            <Zap className="size-3 text-[#008ed3]" />
+            <span className="text-[10px] text-gray-500 uppercase tracking-wide">Geração</span>
+          </div>
+          <p className="font-semibold text-sm text-gray-900">{plant.currentGeneration.toFixed(1)} kW</p>
+          <Progress value={(plant.currentGeneration / plant.capacity) * 100} className="h-1 mt-1.5" />
+        </div>
+        <div className="rounded-lg bg-gray-50 px-3 py-2">
+          <div className="flex items-center gap-1 mb-1">
+            <Activity className="size-3 text-[#0055a3]" />
+            <span className="text-[10px] text-gray-500 uppercase tracking-wide">Eficiência</span>
+          </div>
+          <EfficiencyText value={plant.efficiency} />
+          <p className="text-[10px] text-gray-400 mt-1">{plant.capacity} kW cap.</p>
+        </div>
+      </div>
+
+      <div className="mt-2 flex items-center justify-between">
+        <SourceBadge hasRealData={plant.hasRealData} />
+        <span className="text-[10px] text-gray-400">{plant.lastUpdate}</span>
+      </div>
+    </button>
+  );
+}
+
+/* ─── Main component ──────────────────────────────────── */
 export function PlantsTable({ plants, onSelectPlant }: PlantsTableProps) {
-  const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
-
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | SolarPlant["status"]>("all");
-  const [sortField, setSortField] = useState<keyof SolarPlant | null>(null);
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-
-  const statusColors = {
-    online: 'bg-green-500',
-    warning: 'bg-amber-500',
-    offline: 'bg-red-500',
-  };
-
-  const statusLabels = {
-    online: 'Online',
-    warning: 'Atenção',
-    offline: 'Offline',
-  };
-
-  const handleSort = (field: keyof SolarPlant) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortDirection("asc");
-    }
-  };
+  const [searchTerm, setSearchTerm]       = useState("");
+  const [statusFilter, setStatusFilter]   = useState<"all" | SolarPlant["status"]>("all");
+  const [page, setPage]                   = useState(1);
+  const [pageSize, setPageSize]           = useState(10);
 
   const filteredPlants = plants.filter((plant) => {
-    const matchesSearch =
+    const matchSearch =
       plant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       plant.location.toLowerCase().includes(searchTerm.toLowerCase());
-    // Garante comparação robusta de status
-    const statusValue = String(plant.status).toLowerCase();
-    const filterValue = String(statusFilter).toLowerCase();
-    const matchesStatus = filterValue === 'all' || statusValue === filterValue;
-    return matchesSearch && matchesStatus;
+    const matchStatus =
+      statusFilter === 'all' || String(plant.status).toLowerCase() === String(statusFilter).toLowerCase();
+    return matchSearch && matchStatus;
   });
 
-  const sortedPlants = [...filteredPlants].sort((a, b) => {
-    if (!sortField) return 0;
-    
-    const aValue = a[sortField];
-    const bValue = b[sortField];
-    
-    if (typeof aValue === 'string' && typeof bValue === 'string') {
-      return sortDirection === "asc" 
-        ? aValue.localeCompare(bValue)
-        : bValue.localeCompare(aValue);
-    }
-    
-    if (typeof aValue === 'number' && typeof bValue === 'number') {
-      return sortDirection === "asc" 
-        ? aValue - bValue
-        : bValue - aValue;
-    }
-    
-    return 0;
-  });
+  const totalPages    = Math.max(1, Math.ceil(filteredPlants.length / pageSize));
+  const currentPage   = Math.min(page, totalPages);
+  const paginated     = filteredPlants.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
-  const totalPages = Math.max(1, Math.ceil(sortedPlants.length / pageSize));
-  const currentPage = Math.min(page, totalPages);
-  const paginatedPlants = sortedPlants.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const resetPage = () => setPage(1);
 
-  const resetToFirstPage = () => setPage(1);
-
-  const formatAddressForTooltip = (location: string) => {
-    if (!location || location.trim().toLowerCase() === 'localização não informada') {
-      return 'Endereço não informado';
-    }
-
-    return location
-      .split(' - ')
-      .map((part) => part.replace(/([A-Za-zÀ-ÿ])(\d)/g, '$1 $2').trim())
-      .join(' - ');
+  const statusCounts = {
+    all:     plants.length,
+    online:  plants.filter((p) => String(p.status) === 'online').length,
+    warning: plants.filter((p) => String(p.status) === 'warning').length,
+    offline: plants.filter((p) => String(p.status) === 'offline').length,
   };
-
-  const getGoogleMapsUrl = (plant: SolarPlant) => {
-    if (Number.isFinite(plant.latitude) && Number.isFinite(plant.longitude)) {
-      return `https://www.google.com/maps?q=${plant.latitude},${plant.longitude}`;
-    }
-
-    const fallbackQuery = plant.location?.trim();
-    if (!fallbackQuery || fallbackQuery.toLowerCase() === 'localização não informada') {
-      return null;
-    }
-
-    return `https://www.google.com/maps?q=${encodeURIComponent(fallbackQuery)}`;
-  };
-
-  const getDataSourceLabel = (plant: SolarPlant) => (plant.hasRealData ? 'API' : 'Estimado');
-  const getDataSourceClass = (plant: SolarPlant) => (
-    plant.hasRealData
-      ? 'bg-green-100 text-green-700'
-      : 'bg-gray-100 text-gray-600'
-  );
 
   return (
     <Card className="h-full flex flex-col">
-      <CardHeader>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <CardTitle className="text-lg sm:text-2xl">Clientes - Usinas Solares</CardTitle>
-            <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full whitespace-nowrap">Clique para ver detalhes</span>
+      <CardHeader className="pb-3">
+        {/* Title row */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <CardTitle className="text-base sm:text-lg font-bold text-gray-900">Usinas Solares</CardTitle>
+            <p className="text-xs text-gray-500 mt-0.5">Clique em uma usina para ver detalhes</p>
           </div>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-            <div className="relative w-full sm:w-[300px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
-              <Input
-                placeholder="Buscar cliente..."
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  resetToFirstPage();
-                }}
-                className="pl-9 w-full text-sm"
-              />
-            </div>
-            <select
-              value={statusFilter}
-              onChange={(event) => {
-                setStatusFilter(event.target.value as "all" | SolarPlant["status"]);
-                resetToFirstPage();
-              }}
-              className="h-10 rounded-md border border-gray-300 px-3 text-sm bg-white text-gray-700 sm:min-w-[180px]"
-              aria-label="Filtrar por status"
+          {/* Search */}
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-gray-400" />
+            <Input
+              placeholder="Buscar cliente ou local..."
+              value={searchTerm}
+              onChange={(e) => { setSearchTerm(e.target.value); resetPage(); }}
+              className="pl-8 h-9 text-sm"
+            />
+          </div>
+        </div>
+
+        {/* Status filter pills */}
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {(['all', 'online', 'warning', 'offline'] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => { setStatusFilter(s); resetPage(); }}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                statusFilter === s
+                  ? s === 'all'     ? 'bg-[#0055a3] text-white border-[#0055a3]'
+                  : s === 'online'  ? 'bg-green-600 text-white border-green-600'
+                  : s === 'warning' ? 'bg-amber-500 text-white border-amber-500'
+                  :                   'bg-red-600   text-white border-red-600'
+                  : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
+              }`}
             >
-              <option value="all">Todos os status</option>
-              <option value="online">Online</option>
-              <option value="warning">Atenção</option>
-              <option value="offline">Offline</option>
-            </select>
-          </div>
+              {s !== 'all' && (
+                <span className={`size-1.5 rounded-full ${
+                  s === 'online' ? 'bg-current' : s === 'warning' ? 'bg-current' : 'bg-current'
+                }`} />
+              )}
+              {s === 'all' ? 'Todos' : statusLabels[s]}
+              <span className={`rounded-full px-1.5 text-[10px] ${
+                statusFilter === s ? 'bg-white/20' : 'bg-gray-100'
+              }`}>
+                {statusCounts[s]}
+              </span>
+            </button>
+          ))}
         </div>
       </CardHeader>
-      <CardContent className="flex flex-1 flex-col overflow-hidden">
-        <div className="relative min-h-0 flex-1 rounded-md border overflow-auto [&_[data-slot=table-container]]:overflow-visible">
-          <Table>
-            <TableHeader className="bg-white shadow-sm">
-              <TableRow>
-                <TableHead className="sticky top-0 z-20 bg-white text-xs sm:text-sm">
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => handleSort('name')}
-                      className="flex items-center gap-1 hover:text-foreground whitespace-nowrap"
-                    >
-                      Cliente
-                      <ArrowUpDown className="size-3" />
-                    </button>
-                    <InfoHint text="Origem do dado: nome do cliente/usina vem do cadastro interno da planta no banco de dados." />
-                  </div>
-                </TableHead>
-                <TableHead className="sticky top-0 z-20 bg-white text-xs sm:text-sm hidden sm:table-cell">
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => handleSort('location')}
-                      className="flex items-center gap-1 hover:text-foreground whitespace-nowrap"
-                    >
-                      Localização
-                      <ArrowUpDown className="size-3" />
-                    </button>
-                    <InfoHint text="Origem do dado: coordenadas/endereço vindos do cadastro da planta; quando há latitude/longitude, o mapa usa essas coordenadas." />
-                  </div>
-                </TableHead>
-                <TableHead className="sticky top-0 z-20 bg-white text-xs sm:text-sm">
-                  <div className="flex items-center gap-1">
-                    <span>Status</span>
-                    <InfoHint text="Origem do dado: status é calculado pelo dashboard com base em dados da API (quando disponíveis), alarmes e regras de fallback." />
-                  </div>
-                </TableHead>
-                <TableHead className="sticky top-0 z-20 bg-white text-right text-xs sm:text-sm">
-                  <div className="ml-auto flex w-fit items-center gap-1">
-                    <button
-                      onClick={() => handleSort('currentGeneration')}
-                      className="flex items-center gap-1 hover:text-foreground whitespace-nowrap"
-                    >
-                      Geração
-                      <ArrowUpDown className="size-3" />
-                    </button>
-                    <InfoHint text="Geração atual (kW). Se houver integração ativa, vem da API; caso contrário, é estimada pelo dashboard." />
-                  </div>
-                </TableHead>
-                <TableHead className="sticky top-0 z-20 bg-white text-right text-xs sm:text-sm hidden md:table-cell">
-                  <div className="ml-auto flex w-fit items-center gap-1">
-                    <button
-                      onClick={() => handleSort('capacity')}
-                      className="flex items-center gap-1 hover:text-foreground whitespace-nowrap"
-                    >
-                      Capacidade
-                      <ArrowUpDown className="size-3" />
-                    </button>
-                    <InfoHint text="Capacidade instalada da usina (kW/kWp) vinda do cadastro da planta no banco. Não é cálculo em tempo real da API." />
-                  </div>
-                </TableHead>
-                <TableHead className="sticky top-0 z-20 bg-white text-right text-xs sm:text-sm hidden lg:table-cell whitespace-nowrap">
-                  <div className="ml-auto flex w-fit items-center gap-1">
-                    <span>Eficiência Diária</span>
-                    <InfoHint text="Eficiência diária (%): (energia de hoje / meta diária estimada) x 100, limitada a 100%." />
-                  </div>
-                </TableHead>
-                <TableHead className="sticky top-0 z-20 bg-white text-right text-xs sm:text-sm hidden lg:table-cell">
-                  <div className="ml-auto flex w-fit items-center gap-1">
-                    <button
-                      onClick={() => handleSort('efficiency')}
-                      className="flex items-center gap-1 hover:text-foreground whitespace-nowrap"
-                    >
-                      Eficiência Mensal
-                      <ArrowUpDown className="size-3" />
-                    </button>
-                    <InfoHint text="Eficiência mensal (%): (geração mensal / meta mensal estimada) x 100, limitada a 100%." />
-                  </div>
-                </TableHead>
-                <TableHead className="sticky top-0 z-20 bg-white text-xs sm:text-sm hidden md:table-cell">
-                  <div className="flex w-fit items-center gap-1">
-                    <span>Meta Mensal</span>
-                    <InfoHint text="Meta mensal: geração do mês (API) versus meta estimada pela capacidade da usina." />
-                  </div>
-                </TableHead>
-                <TableHead className="sticky top-0 z-20 bg-white text-xs sm:text-sm hidden lg:table-cell">
-                  <div className="flex items-center gap-1">
-                    <span>Última Atualização</span>
-                    <InfoHint text="Origem do dado: horário gerado no backend no momento da resposta do dashboard (carimbo de atualização da consulta)." />
-                  </div>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedPlants.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={10} className="text-center py-8 text-gray-500 text-xs sm:text-sm">
-                    Nenhum cliente encontrado
-                  </TableCell>
+
+      <CardContent className="flex flex-1 flex-col overflow-hidden p-0 sm:px-6 sm:pb-6">
+
+        {/* ── Mobile: cards ── */}
+        <div className="sm:hidden flex flex-col gap-2 overflow-y-auto px-4 pb-4 flex-1">
+          {paginated.length === 0 ? (
+            <p className="py-12 text-center text-sm text-gray-400">Nenhuma usina encontrada</p>
+          ) : (
+            paginated.map((plant) => (
+              <PlantCard key={plant.id} plant={plant} onClick={() => onSelectPlant(plant)} />
+            ))
+          )}
+        </div>
+
+        {/* ── Tablet / Desktop: table ── */}
+        <div className="hidden sm:flex flex-col flex-1 overflow-hidden rounded-lg border border-gray-200">
+          <div className="overflow-auto flex-1">
+            <Table className="min-w-[640px]">
+              <TableHeader>
+                <TableRow className="bg-gray-50 hover:bg-gray-50">
+                  <TableHead className="sticky top-0 z-20 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wide whitespace-nowrap pl-4">
+                    Cliente / Local
+                  </TableHead>
+                  <TableHead className="sticky top-0 z-20 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wide whitespace-nowrap">
+                    Status
+                  </TableHead>
+                  <TableHead className="sticky top-0 z-20 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wide text-right whitespace-nowrap">
+                    Geração
+                  </TableHead>
+                  <TableHead className="sticky top-0 z-20 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wide text-right whitespace-nowrap hidden md:table-cell">
+                    Capacidade
+                  </TableHead>
+                  <TableHead className="sticky top-0 z-20 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wide text-right whitespace-nowrap hidden lg:table-cell">
+                    Efic. Mensal
+                  </TableHead>
+                  <TableHead className="sticky top-0 z-20 bg-gray-50 text-xs font-semibold text-gray-600 uppercase tracking-wide hidden xl:table-cell">
+                    Meta Mensal
+                  </TableHead>
+                  <TableHead className="sticky top-0 z-20 bg-gray-50 w-8" />
                 </TableRow>
-              ) : (
-                paginatedPlants.map((plant) => {
-                  const generationPercentage = (plant.currentGeneration / plant.capacity) * 100;
-                  const monthlyProgress = (plant.monthlyGeneration / plant.monthlyTarget) * 100;
-                  
-                  return (
-                    <TableRow
-                      key={plant.id}
-                      className="cursor-pointer hover:bg-amber-50 hover:shadow-sm transition-colors text-xs sm:text-sm border-l-4 border-l-transparent hover:border-l-amber-500 group"
-                      onClick={() => onSelectPlant(plant)}
-                    >
-                      <TableCell className="font-medium whitespace-nowrap">{plant.name}</TableCell>
-                      <TableCell className="text-gray-600 hidden sm:table-cell whitespace-nowrap text-center align-middle">
-                        <div className="flex items-center justify-center">
-                          {getGoogleMapsUrl(plant) ? (
+              </TableHeader>
+              <TableBody>
+                {paginated.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="py-12 text-center text-sm text-gray-400">
+                      Nenhuma usina encontrada
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  paginated.map((plant) => {
+                    const mapsUrl = getGoogleMapsUrl(plant);
+                    const genPct  = Math.min((plant.currentGeneration / plant.capacity) * 100, 100);
+                    const monPct  = Math.min((plant.monthlyGeneration  / plant.monthlyTarget)  * 100, 100);
+                    return (
+                      <TableRow
+                        key={plant.id}
+                        className="cursor-pointer group border-l-2 border-l-transparent hover:border-l-[#008ed3] hover:bg-[#e6f4fc]/50 transition-colors"
+                        onClick={() => onSelectPlant(plant)}
+                      >
+                        {/* Cliente / Local */}
+                        <TableCell className="pl-4 py-3">
+                          <p className="font-semibold text-sm text-gray-900 truncate max-w-[180px]">{plant.name}</p>
+                          {mapsUrl ? (
                             <a
-                              href={getGoogleMapsUrl(plant) ?? '#'}
+                              href={mapsUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center justify-center rounded-md p-1 text-blue-600 hover:bg-blue-50"
-                              title={formatAddressForTooltip(plant.location)}
-                              onClick={(event) => event.stopPropagation()}
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center gap-1 text-xs text-[#008ed3] hover:underline mt-0.5"
                             >
-                              <MapPin className="size-4" />
+                              <MapPin className="size-3 shrink-0" />
+                              <span className="truncate max-w-[160px]">{plant.location}</span>
                             </a>
                           ) : (
-                            <span className="text-gray-400">-</span>
+                            <p className="text-xs text-gray-400 mt-0.5 truncate max-w-[160px]">{plant.location}</p>
                           )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        <div className="flex flex-col items-start gap-0.5">
-                          <Badge className={`${statusColors[plant.status]} text-white text-xs`}>
+                        </TableCell>
+
+                        {/* Status */}
+                        <TableCell className="py-3 whitespace-nowrap">
+                          <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${statusBadge[plant.status]}`}>
+                            <span className={`size-1.5 rounded-full ${statusColors[plant.status]}`} />
                             {statusLabels[plant.status]}
-                          </Badge>
-                          {/* Removido badge secundário Solis, exibe só status principal */}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right whitespace-nowrap">
-                        <div title={plant.hasRealData
-                          ? 'Geração atual recebida da API em tempo quase real.'
-                          : 'Geração atual estimada por fallback interno (sem dado real recente da API).'}>
-                          <div className="font-medium text-xs sm:text-sm">{plant.currentGeneration.toFixed(1)} kW</div>
-                          <div className="mt-1">
-                            <span className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-medium ${getDataSourceClass(plant)}`}>
-                              {getDataSourceLabel(plant)}
-                            </span>
-                          </div>
-                          <Progress value={generationPercentage} className="h-1 w-16 sm:w-20 ml-auto mt-1" />
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right font-medium hidden md:table-cell whitespace-nowrap">
-                        {plant.capacity} kW
-                      </TableCell>
-                      <TableCell
-                        className="text-right hidden lg:table-cell whitespace-nowrap"
-                        title={plant.hasRealData
-                          ? 'Eficiência diária calculada com energia real da API (hoje / meta diária).'
-                          : 'Eficiência diária estimada por fallback de status.'}
-                      >
-                        <span className={`font-medium text-xs sm:text-sm ${
-                          (plant.dailyEfficiency ?? 0) >= 95 ? 'text-green-600' :
-                          (plant.dailyEfficiency ?? 0) >= 90 ? 'text-amber-600' :
-                          'text-red-600'
-                        }`}>
-                          {(plant.dailyEfficiency ?? 0).toFixed(1)}%
-                        </span>
-                        <div className="mt-1">
-                          <span className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-medium ${getDataSourceClass(plant)}`}>
-                            {getDataSourceLabel(plant)}
                           </span>
-                        </div>
-                      </TableCell>
-                      <TableCell
-                        className="text-right hidden lg:table-cell whitespace-nowrap"
-                        title={plant.hasRealData
-                          ? 'Eficiência mensal calculada com geração real da API (mês / meta mensal).'
-                          : 'Eficiência mensal em fallback por status (sem base completa da API).'}
-                      >
-                        <span className={`font-medium text-xs sm:text-sm ${
-                          plant.efficiency >= 95 ? 'text-green-600' : 
-                          plant.efficiency >= 90 ? 'text-amber-600' : 
-                          'text-red-600'
-                        }`}>
-                          {plant.efficiency}%
-                        </span>
-                        <div className="mt-1">
-                          <span className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-medium ${getDataSourceClass(plant)}`}>
-                            {getDataSourceLabel(plant)}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell
-                        className="hidden md:table-cell"
-                        title={plant.hasRealData
-                          ? 'Valor à esquerda vem da API (geração mensal real). Meta à direita é cálculo estimado por capacidade.'
-                          : 'Sem dado mensal real recente da API: valores podem usar estimativas/fallback.'}
-                      >
-                        <div className="w-24 lg:w-32">
-                          <div className="text-xs lg:text-sm mb-1">
-                            {plant.monthlyGeneration.toFixed(0)} / {plant.monthlyTarget.toFixed(0)} kWh
+                        </TableCell>
+
+                        {/* Geração */}
+                        <TableCell className="py-3 text-right whitespace-nowrap">
+                          <p className="font-semibold text-sm text-gray-900">{plant.currentGeneration.toFixed(1)} kW</p>
+                          <Progress value={genPct} className="h-1 w-16 ml-auto mt-1.5" />
+                          <div className="flex justify-end mt-1">
+                            <SourceBadge hasRealData={plant.hasRealData} />
                           </div>
-                          <div className="mb-1">
-                            <span className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-medium ${getDataSourceClass(plant)}`}>
-                              {getDataSourceLabel(plant)}
-                            </span>
+                        </TableCell>
+
+                        {/* Capacidade */}
+                        <TableCell className="py-3 text-right font-medium text-sm text-gray-700 whitespace-nowrap hidden md:table-cell">
+                          {plant.capacity} kW
+                        </TableCell>
+
+                        {/* Efic. Mensal */}
+                        <TableCell className="py-3 text-right whitespace-nowrap hidden lg:table-cell">
+                          <EfficiencyText value={plant.efficiency} />
+                          <div className="flex justify-end mt-1">
+                            <SourceBadge hasRealData={plant.hasRealData} />
                           </div>
-                          <Progress value={monthlyProgress} className="h-1" />
-                          <div className="text-xs text-gray-500 mt-1">
-                            {monthlyProgress.toFixed(0)}%
+                        </TableCell>
+
+                        {/* Meta Mensal */}
+                        <TableCell className="py-3 hidden xl:table-cell">
+                          <div className="w-32">
+                            <div className="flex justify-between text-xs text-gray-500 mb-1">
+                              <span>{plant.monthlyGeneration.toFixed(0)}</span>
+                              <span>{plant.monthlyTarget.toFixed(0)} kWh</span>
+                            </div>
+                            <Progress value={monPct} className="h-1.5" />
+                            <p className="text-[10px] text-gray-400 mt-1">{monPct.toFixed(0)}% da meta</p>
                           </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            Ref: {plant.energyMonthLabel ?? 'sem mês/ano'}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-xs sm:text-sm text-gray-500 hidden lg:table-cell whitespace-nowrap">
-                        {plant.lastUpdate}
-                      </TableCell>
-                      <TableCell className="text-right pr-2">
-                        <ArrowRight className="size-4 text-gray-400 group-hover:text-amber-600 transition-colors" />
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
+                        </TableCell>
+
+                        {/* Arrow */}
+                        <TableCell className="py-3 pr-3 text-right">
+                          <ArrowRight className="size-4 text-gray-300 group-hover:text-[#008ed3] transition-colors ml-auto" />
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
-        <div className="mt-4 flex flex-col gap-3 text-sm text-gray-600 sm:flex-row sm:items-center sm:justify-between">
+
+        {/* ── Pagination ── */}
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-xs text-gray-500 px-4 sm:px-0">
           <span>
-            Exibindo {paginatedPlants.length} de {sortedPlants.length} cliente(s) filtrado(s) | Total: {plants.length}
+            {filteredPlants.length} usina{filteredPlants.length !== 1 ? 's' : ''} encontrada{filteredPlants.length !== 1 ? 's' : ''}
+            {statusFilter !== 'all' && ` · filtro: ${statusLabels[statusFilter]}`}
           </span>
-          <div className="flex flex-wrap items-center gap-2">
-            <label htmlFor="plantsPageSize" className="whitespace-nowrap">Linhas por página</label>
+          <div className="flex items-center gap-2">
             <select
-              id="plantsPageSize"
               value={pageSize}
-              onChange={(event) => {
-                setPageSize(Number(event.target.value));
-                resetToFirstPage();
-              }}
-              className="rounded border border-gray-300 px-3 py-2 text-sm"
+              onChange={(e) => { setPageSize(Number(e.target.value)); resetPage(); }}
+              className="rounded border border-gray-300 px-2 py-1 text-xs bg-white"
             >
-              {PAGE_SIZE_OPTIONS.map((option) => (
-                <option key={option} value={option}>{option}</option>
-              ))}
+              {PAGE_SIZE_OPTIONS.map((n) => <option key={n} value={n}>{n} / pág.</option>)}
             </select>
             <button
-              onClick={() => setPage((current) => Math.max(current - 1, 1))}
+              onClick={() => setPage((p) => Math.max(p - 1, 1))}
               disabled={currentPage <= 1}
-              className="rounded border border-gray-300 px-3 py-2 text-sm disabled:opacity-50"
+              className="inline-flex items-center justify-center size-7 rounded border border-gray-300 bg-white disabled:opacity-40 hover:bg-gray-50 transition-colors"
             >
-              Anterior
+              <ChevronLeft className="size-3.5" />
             </button>
-            <span className="whitespace-nowrap">Página {currentPage} de {totalPages}</span>
+            <span className="whitespace-nowrap tabular-nums">{currentPage} / {totalPages}</span>
             <button
-              onClick={() => setPage((current) => Math.min(current + 1, totalPages))}
+              onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
               disabled={currentPage >= totalPages}
-              className="rounded border border-gray-300 px-3 py-2 text-sm disabled:opacity-50"
+              className="inline-flex items-center justify-center size-7 rounded border border-gray-300 bg-white disabled:opacity-40 hover:bg-gray-50 transition-colors"
             >
-              Próxima
+              <ChevronRight className="size-3.5" />
             </button>
           </div>
         </div>

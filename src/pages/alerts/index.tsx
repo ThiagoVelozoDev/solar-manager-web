@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { normalizeSolisAlarmState } from '../../lib/solisAlarmState';
-import { AlertTriangle, ChevronDown, ChevronUp, ChevronsUpDown, CircleAlert, Clock, Filter, RefreshCw, Search } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronUp, ChevronsUpDown, CircleAlert, Clock, ClipboardList, Filter, RefreshCw, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiFetch } from '../../lib/api';
 
@@ -56,6 +57,7 @@ const levelStyle = (value: string | null) => {
 };
 
 export default function AlertsPage() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [items, setItems] = useState<AlarmItem[]>([]);
@@ -459,6 +461,7 @@ export default function AlertsPage() {
                       </button>
                     </th>
                   ))}
+                  <th className="px-3 py-2 text-gray-500">Ação</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -497,6 +500,21 @@ export default function AlertsPage() {
                     </td>
                     <td className="px-3 py-2 text-gray-600">{formatDuration(getAlarmDurationMs(item))}</td>
                     <td className="px-3 py-2 text-gray-600">{new Date(item.happenedAt ?? item.lastSeenAt).toLocaleString('pt-BR')}</td>
+                    <td className="px-3 py-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const params = new URLSearchParams({ alarmEventId: String(item.id) });
+                          if (item.stationId) params.set('stationId', item.stationId);
+                          navigate(`/maintenance/create?${params.toString()}`);
+                        }}
+                        className="inline-flex items-center gap-1 rounded-md bg-[#e6f4fc] px-2 py-1 text-xs font-medium text-[#0055a3] hover:bg-[#0055a3] hover:text-white transition-colors"
+                        title="Abrir Ordem de Serviço"
+                      >
+                        <ClipboardList className="size-3" />
+                        Abrir OS
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

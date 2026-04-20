@@ -53,8 +53,8 @@ export function EnergyChart({ data }: EnergyChartProps) {
                 onClick={() => setUnit(u)}
                 className={`cursor-pointer rounded px-2.5 py-1 text-xs font-medium transition-colors ${
                   unit === u
-                    ? 'bg-amber-500 text-white shadow-sm'
-                    : 'border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100'
+                    ? 'bg-[#0055a3] text-white shadow-sm'
+                    : 'border border-[#008ed3]/30 bg-[#e6f4fc] text-[#0055a3] hover:bg-[#008ed3]/10'
                 }`}
               >
                 {u}
@@ -63,18 +63,18 @@ export function EnergyChart({ data }: EnergyChartProps) {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="rounded-b-lg bg-gradient-to-b from-amber-50/35 to-white">
+      <CardContent className="rounded-b-lg bg-gradient-to-b from-[#e6f4fc]/25 to-white">
         <Tabs defaultValue="daily" className="w-full">
-          <TabsList className="grid w-full max-w-sm sm:max-w-md grid-cols-2 border border-amber-200 bg-amber-100/60 p-1">
+          <TabsList className="grid w-full max-w-sm sm:max-w-md grid-cols-2 border border-[#008ed3]/20 bg-[#e6f4fc]/60 p-1">
             <TabsTrigger
               value="daily"
-              className="cursor-pointer text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm"
+              className="cursor-pointer text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#0055a3] data-[state=active]:shadow-sm"
             >
               Hoje
             </TabsTrigger>
             <TabsTrigger
               value="monthly"
-              className="cursor-pointer text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm"
+              className="cursor-pointer text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-[#0055a3] data-[state=active]:shadow-sm"
             >
               Mensal
             </TabsTrigger>
@@ -85,8 +85,8 @@ export function EnergyChart({ data }: EnergyChartProps) {
               <AreaChart data={data.daily} margin={{ left: -20, right: 10, top: 10, bottom: 10 }}>
                 <defs>
                   <linearGradient id="colorGeneration" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.1}/>
+                    <stop offset="5%" stopColor="#008ed3" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#008ed3" stopOpacity={0.1}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -114,7 +114,7 @@ export function EnergyChart({ data }: EnergyChartProps) {
                 <Area
                   type="monotone"
                   dataKey="generation"
-                  stroke="#f59e0b"
+                  stroke="#008ed3"
                   strokeWidth={2}
                   fillOpacity={1}
                   fill="url(#colorGeneration)"
@@ -162,9 +162,9 @@ export function EnergyChart({ data }: EnergyChartProps) {
                 <Line
                   type="monotone"
                   dataKey="generation"
-                  stroke="#f59e0b"
+                  stroke="#008ed3"
                   strokeWidth={3}
-                  dot={{ fill: '#f59e0b', r: 4 }}
+                  dot={{ fill: '#008ed3', r: 4 }}
                   name={`Geração (${unit})`}
                 />
                 <Line

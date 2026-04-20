@@ -378,7 +378,7 @@ export default function PlantPage() {
             }}
           >
             <DialogTrigger asChild>
-              <Button className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white gap-2">
+              <Button className="w-full sm:w-auto bg-gradient-to-r from-[#008ed3] to-[#0055a3] hover:from-[#0055a3] hover:to-[#0e457f] text-white gap-2">
                 <Plus className="size-4" />
                 {editingPlantId ? "Editar Usina" : "Nova Usina"}
               </Button>
@@ -436,7 +436,7 @@ export default function PlantPage() {
 
                 <div className="md:col-span-2 flex justify-end gap-3">
                   <Button type="button" variant="outline" onClick={() => { setIsDialogOpen(false); setEditingPlantId(null); reset(); }}>Cancelar</Button>
-                  <Button type="submit" disabled={isSubmitting} className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white">{isSubmitting ? "Salvando..." : "Salvar"}</Button>
+                  <Button type="submit" disabled={isSubmitting} className="bg-gradient-to-r from-[#008ed3] to-[#0055a3] hover:from-[#0055a3] hover:to-[#0e457f] text-white">{isSubmitting ? "Salvando..." : "Salvar"}</Button>
                 </div>
               </form>
             </DialogContent>

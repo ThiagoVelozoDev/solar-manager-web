@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
-import { Sun, Eye, EyeOff, Mail, Lock } from "lucide-react"
+import { Eye, EyeOff, Mail, Lock } from "lucide-react"
 import { toast } from 'sonner'
 
 import { useForm } from "react-hook-form"
@@ -14,6 +14,7 @@ import { apiFetch } from '../../lib/api'
 import { useAuth } from '../../components/auth/AuthContext'
 
 import backgroundImage from "../../assets/fundo.png"
+import logoImage from "../../assets/logo.png"
 
 
 const loginSchema = z.object({
@@ -97,28 +98,24 @@ export  function LoginPage() {
       {/* Overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-900/30 via-blue-800/20 to-blue-900/30" />
 
-      {/* Header */}
-      <div className="absolute top-0 left-0 right-0 p-6 flex  items-center z-10">
-         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center shadow-lg">
-            <Sun className="w-7 h-7 text-white" strokeWidth={2.5} />
-          </div>
-          <span className="text-white text-2xl font-semibold tracking-wide">SolarManager</span>
-        </div>
-      </div>
-
       {/* Login Form */}
       <div className="relative z-20 w-full max-w-md mx-4">
         <div className="bg-gray-800/95 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-white/10">
 
-          <div className="mb-8 text-center">
-            <h2 className="text-2xl font-semibold text-white mb-2">
-              Bem-vindo
-            </h2>
-
-            <p className="text-gray-300 text-sm">
-              Faça login para acessar o sistema
-            </p>
+          <div className="mb-8 flex flex-col items-center gap-4">
+            <img
+              src={logoImage}
+              alt="SolarManager"
+              className="h-20 w-auto object-contain drop-shadow-[0_2px_16px_rgba(0,142,211,0.45)]"
+            />
+            <div className="text-center">
+              <h2 className="text-2xl font-semibold text-white mb-1">
+                Bem-vindo
+              </h2>
+              <p className="text-gray-300 text-sm">
+                Faça login para acessar o sistema
+              </p>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -190,7 +187,7 @@ export  function LoginPage() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-12 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-medium text-base"
+              className="w-full h-12 bg-gradient-to-r from-[#008ed3] to-[#0055a3] hover:from-[#0055a3] hover:to-[#0e457f] text-white font-medium text-base"
             >
               {isSubmitting ? 'ENTRANDO...' : 'LOGIN'}
             </Button>

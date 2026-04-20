@@ -99,7 +99,7 @@ export function PlantDetailsModal({ plant, isOpen, onClose }: PlantDetailsModalP
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 border rounded-lg bg-white">
                 <div className="flex items-center gap-2 mb-2">
-                  <Zap className="size-5 text-amber-500" />
+                  <Zap className="size-5 text-[#008ed3]" />
                   <span className="font-medium">Geração Atual</span>
                 </div>
                 <p className="text-3xl font-bold">{plant.currentGeneration.toFixed(1)} kW</p>
@@ -138,7 +138,7 @@ export function PlantDetailsModal({ plant, isOpen, onClose }: PlantDetailsModalP
 
               <div className="p-4 border rounded-lg bg-white">
                 <div className="flex items-center gap-2 mb-2">
-                  <Sun className="size-5 text-orange-500" />
+                  <Sun className="size-5 text-[#008ed3]" />
                   <span className="font-medium">Horas de Sol</span>
                 </div>
                 <p className="text-3xl font-bold">6.8h</p>
@@ -215,7 +215,7 @@ export function PlantDetailsModal({ plant, isOpen, onClose }: PlantDetailsModalP
 
               <div className="p-4 border rounded-lg bg-white">
                 <div className="flex items-center gap-2 mb-2">
-                  <Zap className="size-5 text-amber-500" />
+                  <Zap className="size-5 text-[#008ed3]" />
                   <span className="font-medium">Energia Hoje {plant.energyDayLabel ? `(${plant.energyDayLabel})` : ''}</span>
                 </div>
                 <p className="text-3xl font-bold">
@@ -252,7 +252,7 @@ export function PlantDetailsModal({ plant, isOpen, onClose }: PlantDetailsModalP
               <div className="p-4 border rounded-lg col-span-2 bg-white">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <Sun className="size-5 text-orange-500" />
+                    <Sun className="size-5 text-[#008ed3]" />
                     <span className="font-medium">Fonte dos dados</span>
                   </div>
                   <Badge variant="outline">

@@ -177,7 +177,7 @@ export default function EditUser() {
                 {...register('nome')}
                 type="text"
                 placeholder="Digite o nome"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#008ed3] focus:border-transparent"
               />
               {errors.nome && (
                 <p className="mt-1 text-xs text-red-600">{errors.nome.message}</p>
@@ -193,7 +193,7 @@ export default function EditUser() {
                 {...register('email')}
                 type="email"
                 placeholder="Digite o email"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#008ed3] focus:border-transparent"
               />
               {errors.email && (
                 <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>
@@ -209,7 +209,7 @@ export default function EditUser() {
                 {...register('cpf')}
                 type="text"
                 placeholder="Digite o CPF (sem pontos)"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#008ed3] focus:border-transparent"
               />
               {errors.cpf && (
                 <p className="mt-1 text-xs text-red-600">{errors.cpf.message}</p>
@@ -225,7 +225,7 @@ export default function EditUser() {
                 {...register('telefone')}
                 type="tel"
                 placeholder="Digite o telefone"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#008ed3] focus:border-transparent"
               />
               {errors.telefone && (
                 <p className="mt-1 text-xs text-red-600">{errors.telefone.message}</p>
@@ -241,7 +241,7 @@ export default function EditUser() {
                 {...register('senha')}
                 type="password"
                 placeholder="Digite a senha (deixe em branco para manter a atual)"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#008ed3] focus:border-transparent"
               />
               {errors.senha && (
                 <p className="mt-1 text-xs text-red-600">{errors.senha.message}</p>
@@ -255,7 +255,7 @@ export default function EditUser() {
               </label>
               <select
                 {...register('ativo')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#008ed3] focus:border-transparent"
               >
                 <option value="">Selecione uma opção</option>
                 <option value="Sim">Sim</option>
@@ -273,7 +273,7 @@ export default function EditUser() {
               </label>
               <select
                 {...register('roleId')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#008ed3] focus:border-transparent"
               >
                 <option value="">Selecione um perfil</option>
                 {roles.map((role) => (
@@ -300,7 +300,7 @@ export default function EditUser() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:shadow-lg font-medium transition-all disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-[#008ed3] to-[#0055a3] text-white rounded-lg hover:shadow-lg font-medium transition-all disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isSubmitting ? 'Salvando...' : 'Salvar Alterações'}
               </button>

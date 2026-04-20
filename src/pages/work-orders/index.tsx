@@ -1,126 +1,284 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
-import { ChevronRight} from 'lucide-react'
 import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "../../components/ui/table";
-import { Filter, Plus, Trash2, Wrench } from "lucide-react";
-import { toast } from 'sonner';
-import { phases, mockPlants, serviceReasons, serviceTypes, loadWorkOrders, saveWorkOrders } from "./types";
-import type { WorkOrder } from "./types";
+import {
+  AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "../../components/ui/alert-dialog";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from "../../components/ui/dialog";
+import { Badge } from "../../components/ui/badge";
+import { Plus, Wrench, Trash2, ChevronLeft, ChevronRight, Search, ChevronDown, CalendarClock } from "lucide-react";
+import { toast } from "sonner";
+import { apiFetch } from "../../lib/api";
 
-interface Filters {
-  wo_id: string;
-  team_name: string;
-  plant_id: string;
-  service_type: string;
-  service_reason: string;
-  phase: string;
-  created_date_to: string;
-  scheduled_date_from: string;
-  scheduled_date_to: string;
-  concluded_date_from: string;
-  concluded_date_to: string;
+interface WorkOrderItem {
+  orderId: number;
+  faseId: number | null;
+  teamId: number | null;
+  orderObservacoes: string | null;
+  createdAt: string;
+  serviceCode: { codServId: number; descricao: string } | null;
+  serviceReason: { motServId: number; descricao: string } | null;
+  team: { teamId: number; teamNome: string } | null;
+  plant: { plantId: number; plantName: string | null } | null;
 }
 
-export default function WorkOrdersPage() {
-  const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
-  const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState<Filters>({
-    wo_id: "",
-    team_name: "",
-    plant_id: "",
-    service_type: "",
-    service_reason: "",
-    phase: "",
-    created_date_to: "",
-    scheduled_date_from: "",
-    scheduled_date_to: "",
-    concluded_date_from: "",
-    concluded_date_to: "",
-  });
+interface TeamOption { teamId: number; teamNome: string; active: boolean }
 
+const PAGE_SIZE = 8;
+
+function faseBadge(faseId: number | null) {
+  if (faseId === 1) return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100">Programado</Badge>;
+  if (faseId === 2) return <Badge className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100">Aberto</Badge>;
+  if (faseId === 3) return <Badge className="bg-green-100 text-green-800 border-green-200 hover:bg-green-100">Concluído</Badge>;
+  return <Badge variant="outline">—</Badge>;
+}
+
+function faseLabel(faseId: number | null): string {
+  if (faseId === 1) return "Programado";
+  if (faseId === 2) return "Aberto";
+  if (faseId === 3) return "Concluído";
+  return "";
+}
+
+function formatDate(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  try { return new Date(iso).toLocaleDateString("pt-BR"); } catch { return iso; }
+}
+
+// ─── Portal-based Actions Dropdown ───────────────────────────────────────────
+interface ActionsDropdownProps {
+  wo: WorkOrderItem;
+  onDelete: (id: number) => void;
+  onProgram: (wo: WorkOrderItem) => void;
+}
+
+function ActionsDropdown({ wo, onDelete, onProgram }: ActionsDropdownProps) {
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState({ top: 0, right: 0 });
+  const btnRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
 
+  function handleOpen() {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+    }
+    setOpen((v) => !v);
+  }
+
   useEffect(() => {
-    const orders = loadWorkOrders();
-    setWorkOrders(orders);
-  }, []);
+    if (!open) return;
+    function close(e: MouseEvent | KeyboardEvent) {
+      if (e instanceof KeyboardEvent && e.key !== "Escape") return;
+      setOpen(false);
+    }
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", close);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", close);
+    };
+  }, [open]);
 
-  const persist = (items: WorkOrder[]) => {
-    setWorkOrders(items);
-    saveWorkOrders(items);
-  };
+  const canConclude = wo.faseId !== 3 && wo.teamId !== null;
 
-  const handleDelete = (id: string) => {
-    const next = workOrders.filter((wo) => wo.id !== id);
-    persist(next);
-    toast.success('Ordem de Serviço excluída');
-  };
+  return (
+    <>
+      <button
+        ref={btnRef}
+        onClick={handleOpen}
+        className="inline-flex items-center gap-1 rounded border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700 hover:bg-gray-50 shadow-sm"
+      >
+        Ações <ChevronDown className="size-3" />
+      </button>
 
-  const filteredWorkOrders = workOrders.filter((wo) => {
-    const createdDate = new Date(wo.created_at);
-    const scheduledDate = wo.scheduled_date ? new Date(wo.scheduled_date) : null;
-    const concludedDate = wo.concluded_date ? new Date(wo.concluded_date) : null;
+      {open && createPortal(
+        <div
+          style={{ position: "fixed", top: pos.top, right: pos.right, zIndex: 9999 }}
+          className="w-44 rounded-lg border border-gray-200 bg-white shadow-xl py-1"
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <button
+            className="flex w-full items-center gap-2 px-3 py-2 text-xs hover:bg-gray-50 text-gray-700"
+            onClick={() => {
+              setOpen(false);
+              if (wo.faseId === 3) {
+                navigate(`/maintenance/conclusion-edit/${wo.orderId}`);
+              } else {
+                navigate(`/maintenance/edit/${wo.orderId}`);
+              }
+            }}
+          >
+            Editar
+          </button>
+          <button
+            className="flex w-full items-center gap-2 px-3 py-2 text-xs hover:bg-gray-50 text-gray-700"
+            onClick={() => { setOpen(false); navigate(`/maintenance/print/${wo.orderId}`); }}
+          >
+            Imprimir
+          </button>
+          {wo.faseId === 2 && (
+            <button
+              className="flex w-full items-center gap-2 px-3 py-2 text-xs hover:bg-yellow-50 text-yellow-700 font-medium"
+              onClick={() => { setOpen(false); onProgram(wo); }}
+            >
+              <CalendarClock className="size-3" /> Programar
+            </button>
+          )}
+          {wo.faseId === 1 && (
+            <button
+              className="flex w-full items-center gap-2 px-3 py-2 text-xs hover:bg-yellow-50 text-yellow-700 font-medium"
+              onClick={() => { setOpen(false); onProgram(wo); }}
+            >
+              <CalendarClock className="size-3" /> Reprogramar
+            </button>
+          )}
+          {canConclude && (
+            <button
+              className="flex w-full items-center gap-2 px-3 py-2 text-xs hover:bg-green-50 text-green-700 font-medium"
+              onClick={() => { setOpen(false); navigate(`/maintenance/conclusion/${wo.orderId}`); }}
+            >
+              Conclusão
+            </button>
+          )}
+          <div className="my-1 border-t border-gray-100" />
+          <button
+            className="flex w-full items-center gap-2 px-3 py-2 text-xs hover:bg-red-50 text-red-600"
+            onClick={() => { setOpen(false); onDelete(wo.orderId); }}
+          >
+            <Trash2 className="size-3" /> Excluir
+          </button>
+        </div>,
+        document.body
+      )}
+    </>
+  );
+}
 
-    if (filters.wo_id && !wo.wo_id.toLowerCase().includes(filters.wo_id.toLowerCase())) return false;
-    if (filters.team_name && !(wo.team_name || "").toLowerCase().includes(filters.team_name.toLowerCase())) return false;
-    if (filters.plant_id && wo.plant_id !== filters.plant_id) return false;
-    if (filters.service_type && wo.service_type !== filters.service_type) return false;
-    if (filters.service_reason && wo.service_reason !== filters.service_reason) return false;
-    if (filters.phase && wo.phase !== filters.phase) return false;
-    if (filters.created_date_to && createdDate > new Date(filters.created_date_to)) return false;
-    if (filters.scheduled_date_from && (!scheduledDate || scheduledDate < new Date(filters.scheduled_date_from))) return false;
-    if (filters.scheduled_date_to && (!scheduledDate || scheduledDate > new Date(filters.scheduled_date_to))) return false;
-    if (filters.concluded_date_from && (!concludedDate || concludedDate < new Date(filters.concluded_date_from))) return false;
-    if (filters.concluded_date_to && (!concludedDate || concludedDate > new Date(filters.concluded_date_to))) return false;
-    return true;
+// ─── Main Page ─────────────────────────────────────────────────────────────
+export default function WorkOrdersPage() {
+  const navigate = useNavigate();
+  const [workOrders, setWorkOrders] = useState<WorkOrderItem[]>([]);
+  const [teams, setTeams] = useState<TeamOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+
+  // delete dialog
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  // program dialog
+  const [programTarget, setProgramTarget] = useState<WorkOrderItem | null>(null);
+  const [progTeamId, setProgTeamId] = useState("");
+  const [progDateTime, setProgDateTime] = useState("");
+  const [programming, setProgramming] = useState(false);
+
+  useEffect(() => { loadOrders(); loadTeams(); }, []);
+
+  async function loadOrders() {
+    setLoading(true);
+    try {
+      const data = await apiFetch<{ workOrders: WorkOrderItem[] }>("/work-orders");
+      setWorkOrders(data.workOrders ?? []);
+    } catch {
+      toast.error("Erro ao carregar ordens de serviço");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function loadTeams() {
+    try {
+      const data = await apiFetch<{ teams: TeamOption[] }>("/teams");
+      setTeams((data.teams ?? []).filter((t) => t.active));
+    } catch { /* non-critical */ }
+  }
+
+  function openProgram(wo: WorkOrderItem) {
+    setProgramTarget(wo);
+    setProgTeamId(wo.teamId ? String(wo.teamId) : "");
+    // default to now + 1 day, format for datetime-local
+    const dt = new Date();
+    dt.setDate(dt.getDate() + 1);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    setProgDateTime(`${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`);
+  }
+
+  async function handleProgram() {
+    if (!programTarget) return;
+    if (!progTeamId) { toast.error("Selecione uma equipe"); return; }
+    if (!progDateTime) { toast.error("Informe a data e hora de programação"); return; }
+    setProgramming(true);
+    try {
+      await apiFetch(`/work-orders/${programTarget.orderId}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          teamId: Number(progTeamId),
+          orderDataProgramacao: progDateTime,
+          faseId: 1,
+        }),
+      });
+      toast.success("OS programada com sucesso");
+      setProgramTarget(null);
+      await loadOrders();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao programar OS");
+    } finally {
+      setProgramming(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (deleteId === null) return;
+    setDeleting(true);
+    try {
+      await apiFetch(`/work-orders/${deleteId}`, { method: "DELETE" });
+      toast.success("Ordem de Serviço excluída");
+      setWorkOrders((prev) => prev.filter((wo) => wo.orderId !== deleteId));
+    } catch {
+      toast.error("Erro ao excluir ordem de serviço");
+    } finally {
+      setDeleting(false);
+      setDeleteId(null);
+    }
+  }
+
+  const filtered = workOrders.filter((wo) => {
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
+    return (
+      String(wo.orderId).includes(q) ||
+      (wo.plant?.plantName ?? "").toLowerCase().includes(q) ||
+      (wo.team?.teamNome ?? "").toLowerCase().includes(q) ||
+      faseLabel(wo.faseId).toLowerCase().includes(q)
+    );
   });
 
-  const handleFilterChange = (key: keyof Filters, value: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  };
-
-  const resetFilters = () => {
-    setFilters({
-      wo_id: "",
-      team_name: "",
-      plant_id: "",
-      service_type: "",
-      service_reason: "",
-      phase: "",
-      created_date_to: "",
-      scheduled_date_from: "",
-      scheduled_date_to: "",
-      concluded_date_from: "",
-      concluded_date_to: "",
-    });
-  };
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paged = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="px-0 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
-        {/* Breadcrumb */}
-        <div className="mb-6 text-sm text-gray-600">
-          <nav className="flex" aria-label="Breadcrumb">
-          <span className="text-gray-900 font-semibold">Ordens de Serviço</span>
-          <ChevronRight className="size-4" />
-          </nav>
-        </div>
+        <nav className="mb-6 flex items-center gap-1 text-sm text-gray-500">
+          <span className="font-semibold text-gray-900">Ordens de Serviço</span>
+        </nav>
 
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-3">
-            <div className="bg-[#383F46] p-2 sm:p-3 rounded-lg">
+            <div className="p-2 sm:p-3 rounded-lg" style={{ background: "linear-gradient(135deg, #008ed3, #0055a3)" }}>
               <Wrench className="size-5 sm:size-6 text-white" />
             </div>
             <div>
@@ -128,296 +286,186 @@ export default function WorkOrdersPage() {
               <p className="text-sm text-gray-500">Gerencie e acompanhe todas as ordens</p>
             </div>
           </div>
-
           <Button
-            className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white gap-2"
+            className="w-full sm:w-auto text-white gap-2"
+            style={{ background: "linear-gradient(135deg, #008ed3, #0055a3)" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "linear-gradient(135deg, #0055a3, #0e457f)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "linear-gradient(135deg, #008ed3, #0055a3)"; }}
             onClick={() => navigate("/maintenance/create")}
           >
-            <Plus className="size-4" />
-            Nova OS
+            <Plus className="size-4" /> Nova OS
           </Button>
         </div>
 
-        {/* Filtros */}
         <Card className="bg-white mb-6">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-gray-900"
-              >
-                <Filter className="size-4" />
-                {showFilters ? "Ocultar Filtros" : "Mostrar Filtros"}
-              </button>
-              {Object.values(filters).some((v) => v) && (
-                <button
-                  onClick={resetFilters}
-                  className="text-xs text-red-600 hover:text-red-700 font-medium"
-                >
-                  Limpar Filtros
-                </button>
-              )}
-            </div>
-          </CardHeader>
-
-          {showFilters && (
-            <CardContent className="bg-gray-50">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">OS</label>
-                  <input
-                    type="text"
-                    value={filters.wo_id}
-                    onChange={(e) => handleFilterChange("wo_id", e.target.value)}
-                    placeholder="Ex: WO-001"
-                    className="w-full rounded-md border px-3 py-2 text-sm"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Equipe</label>
-                  <input
-                    type="text"
-                    value={filters.team_name}
-                    onChange={(e) => handleFilterChange("team_name", e.target.value)}
-                    placeholder="Nome da equipe"
-                    className="w-full rounded-md border px-3 py-2 text-sm"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Usina</label>
-                  <select
-                    value={filters.plant_id}
-                    onChange={(e) => handleFilterChange("plant_id", e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm"
-                  >
-                    <option value="">Todas</option>
-                    {mockPlants.map((plant) => (
-                      <option key={plant.id} value={plant.id}>
-                        {plant.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Tipo de Serviço</label>
-                  <select
-                    value={filters.service_type}
-                    onChange={(e) => handleFilterChange("service_type", e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm"
-                  >
-                    <option value="">Todos</option>
-                    {serviceTypes.map((type) => (
-                      <option key={type.id} value={type.name}>
-                        {type.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Motivo</label>
-                  <select
-                    value={filters.service_reason}
-                    onChange={(e) => handleFilterChange("service_reason", e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm"
-                  >
-                    <option value="">Todos</option>
-                    {serviceReasons.map((reason, idx) => (
-                      <option key={idx} value={reason}>
-                        {reason}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Fase</label>
-                  <select
-                    value={filters.phase}
-                    onChange={(e) => handleFilterChange("phase", e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm"
-                  >
-                    <option value="">Todas</option>
-                    {phases.map((phase) => (
-                      <option key={phase.id} value={phase.id}>
-                        {phase.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Criação (Até)</label>
-                  <input
-                    type="date"
-                    value={filters.created_date_to}
-                    onChange={(e) => handleFilterChange("created_date_to", e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Programação (De)</label>
-                  <input
-                    type="date"
-                    value={filters.scheduled_date_from}
-                    onChange={(e) => handleFilterChange("scheduled_date_from", e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Programação (Até)</label>
-                  <input
-                    type="date"
-                    value={filters.scheduled_date_to}
-                    onChange={(e) => handleFilterChange("scheduled_date_to", e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Conclusão (De)</label>
-                  <input
-                    type="date"
-                    value={filters.concluded_date_from}
-                    onChange={(e) => handleFilterChange("concluded_date_from", e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Conclusão (Até)</label>
-                  <input
-                    type="date"
-                    value={filters.concluded_date_to}
-                    onChange={(e) => handleFilterChange("concluded_date_to", e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          )}
-        </Card>
-
-        {/* Tabela de Ordens de Serviço */}
-        <Card className="bg-white border-0 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg sm:text-2xl">
-              Ordens de Serviço ({filteredWorkOrders.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="bg-white">
-            <div className="rounded-md overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-xs sm:text-sm">OS ID</TableHead>
-                    <TableHead className="text-xs sm:text-sm">Usina</TableHead>
-                    <TableHead className="text-xs sm:text-sm">Tipo Serviço</TableHead>
-                    <TableHead className="text-xs sm:text-sm">Motivo</TableHead>
-                    <TableHead className="text-xs sm:text-sm">Fase</TableHead>
-                    <TableHead className="text-xs sm:text-sm">Equipe</TableHead>
-                    <TableHead className="text-xs sm:text-sm">Criação</TableHead>
-                    <TableHead className="text-xs sm:text-sm">Programação</TableHead>
-                    <TableHead className="text-xs sm:text-sm">Conclusão</TableHead>
-                    <TableHead className="text-xs sm:text-sm text-center">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredWorkOrders.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={10}
-                        className="text-center py-8 text-gray-500 text-xs sm:text-sm"
-                      >
-                        Nenhuma ordem de serviço encontrada
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredWorkOrders.map((workOrder) => (
-                      <TableRow key={workOrder.id} className="text-xs sm:text-sm hover:bg-gray-50">
-                        <TableCell className="font-semibold">{workOrder.wo_id}</TableCell>
-                        <TableCell>{workOrder.plant_name}</TableCell>
-                        <TableCell>{workOrder.service_type}</TableCell>
-                        <TableCell>{workOrder.service_reason}</TableCell>
-                        <TableCell>
-                          <span
-                            className={`px-2 py-1 rounded text-xs font-semibold ${
-                              workOrder.phase === "55"
-                                ? "bg-green-100 text-green-800"
-                                : workOrder.phase === "01"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : workOrder.phase === "04"
-                                    ? "bg-blue-100 text-blue-800"
-                                    : "bg-red-100 text-red-800"
-                            }`}
-                          >
-                            {phases.find((p) => p.id === workOrder.phase)?.name || workOrder.phase}
-                          </span>
-                        </TableCell>
-                        <TableCell>{workOrder.team_name || "-"}</TableCell>
-                        <TableCell>{workOrder.created_at}</TableCell>
-                        <TableCell>{workOrder.scheduled_date || "-"}</TableCell>
-                        <TableCell>{workOrder.concluded_date || "-"}</TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex gap-2 justify-center flex-wrap">
-                            {workOrder.phase === "01" && (
-                              <>
-                                <button
-                                  onClick={() => navigate(`/maintenance/edit/${workOrder.id}`)}
-                                  className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 rounded transition whitespace-nowrap"
-                                >
-                                  Editar
-                                </button>
-                                <button
-                                  onClick={() => navigate(`/maintenance/edit/${workOrder.id}`)}  
-                                  className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:from-purple-600 hover:to-purple-700 rounded transition whitespace-nowrap"
-                                >
-                                  Programar
-                                </button>
-                              </>
-                            )}
-                            {workOrder.phase === "04" && (
-                              <button
-                                onClick={() => navigate(`/maintenance/conclusion/${workOrder.id}`)}
-                                className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 rounded transition whitespace-nowrap"
-                              >
-                                Concluir
-                              </button>
-                            )}
-                            {(workOrder.phase === "55" || workOrder.phase === "12") && (
-                              <button
-                                onClick={() => navigate(`/maintenance/edit/${workOrder.id}`)}
-                                className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 rounded transition whitespace-nowrap"
-                              >
-                                Editar Conclusão
-                              </button>
-                            )}
-                            <button
-                              onClick={() => handleDelete(workOrder.id)}
-                              className="p-1.5 text-xs hover:bg-red-50 rounded transition"
-                            >
-                              <Trash2 className="size-4 text-red-500 hover:text-red-700" />
-                            </button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-            <div className="mt-4 text-xs sm:text-sm text-gray-500">
-              Total de {filteredWorkOrders.length} ordem{filteredWorkOrders.length !== 1 ? "s" : ""} de
-              serviço
+          <CardContent className="pt-4 pb-4">
+            <div className="relative max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+              <Input
+                placeholder="Buscar por OS #, usina, equipe, fase..."
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                className="pl-9"
+              />
             </div>
           </CardContent>
         </Card>
+
+        <Card className="bg-white border-0 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-lg sm:text-2xl">Ordens de Serviço ({filtered.length})</CardTitle>
+          </CardHeader>
+          <CardContent className="bg-white">
+            {loading ? (
+              <div className="py-12 text-center text-gray-500 text-sm">Carregando...</div>
+            ) : (
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs sm:text-sm">OS #</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Usina</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Código de Serviço</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Motivo</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Fase</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Equipe</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Criado em</TableHead>
+                      <TableHead className="text-xs sm:text-sm text-center">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paged.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={8} className="text-center py-8 text-gray-500 text-xs sm:text-sm">
+                          {search ? "Nenhuma ordem encontrada para a busca." : "Nenhuma ordem de serviço cadastrada."}
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      paged.map((wo) => (
+                        <TableRow key={wo.orderId} className="text-xs sm:text-sm hover:bg-gray-50">
+                          <TableCell className="font-semibold text-[#008ed3]">#{wo.orderId}</TableCell>
+                          <TableCell>{wo.plant?.plantName ?? "—"}</TableCell>
+                          <TableCell>{wo.serviceCode?.descricao ?? "—"}</TableCell>
+                          <TableCell>{wo.serviceReason?.descricao ?? "—"}</TableCell>
+                          <TableCell>{faseBadge(wo.faseId)}</TableCell>
+                          <TableCell>{wo.team?.teamNome ?? "—"}</TableCell>
+                          <TableCell>{formatDate(wo.createdAt)}</TableCell>
+                          <TableCell className="text-center">
+                            <ActionsDropdown wo={wo} onDelete={setDeleteId} onProgram={openProgram} />
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+
+                {totalPages > 1 && (
+                  <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
+                    <span>Página {currentPage} de {totalPages} &mdash; {filtered.length} resultado{filtered.length !== 1 ? "s" : ""}</span>
+                    <div className="flex items-center gap-1">
+                      <Button size="sm" variant="outline" disabled={currentPage === 1} onClick={() => setPage((p) => p - 1)}>
+                        <ChevronLeft className="size-4" />
+                      </Button>
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                        .reduce<(number | "...")[]>((acc, p, idx, arr) => {
+                          if (idx > 0 && (p as number) - (arr[idx - 1] as number) > 1) acc.push("...");
+                          acc.push(p);
+                          return acc;
+                        }, [])
+                        .map((p, idx) =>
+                          p === "..." ? <span key={`e-${idx}`} className="px-1">...</span> : (
+                            <Button key={p} size="sm" variant={p === currentPage ? "default" : "outline"}
+                              className={p === currentPage ? "bg-[#008ed3] text-white hover:bg-[#0055a3]" : ""}
+                              onClick={() => setPage(p as number)}>
+                              {p}
+                            </Button>
+                          )
+                        )}
+                      <Button size="sm" variant="outline" disabled={currentPage === totalPages} onClick={() => setPage((p) => p + 1)}>
+                        <ChevronRight className="size-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
       </main>
+
+      {/* Delete dialog */}
+      <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Ordem de Serviço</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir a OS #{deleteId}? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+              {deleting ? "Excluindo..." : "Excluir"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Program / Reprogram dialog */}
+      <Dialog open={!!programTarget} onOpenChange={(o) => !o && setProgramTarget(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarClock className="size-5 text-yellow-600" />
+              {programTarget?.faseId === 1 ? "Reprogramar OS" : "Programar OS"} #{programTarget?.orderId}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-2">
+            <div className="space-y-2">
+              <Label htmlFor="prog-team">
+                Equipe <span className="text-red-500">*</span>
+              </Label>
+              <select
+                id="prog-team"
+                value={progTeamId}
+                onChange={(e) => setProgTeamId(e.target.value)}
+                className="w-full rounded-md border border-input px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#008ed3]/40"
+              >
+                <option value="">Selecione uma equipe</option>
+                {teams.map((t) => (
+                  <option key={t.teamId} value={String(t.teamId)}>{t.teamNome}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="prog-datetime">
+                Data e Hora <span className="text-red-500">*</span>
+              </Label>
+              <input
+                id="prog-datetime"
+                type="datetime-local"
+                value={progDateTime}
+                onChange={(e) => setProgDateTime(e.target.value)}
+                className="w-full rounded-md border border-input px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#008ed3]/40"
+              />
+            </div>
+            <div className="flex justify-end gap-3 pt-2 border-t">
+              <Button variant="outline" onClick={() => setProgramTarget(null)} disabled={programming}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleProgram}
+                disabled={programming}
+                className="text-white"
+                style={{ background: programming ? "#94a3b8" : "linear-gradient(135deg, #008ed3, #0055a3)" }}
+              >
+                {programming ? "Salvando..." : "Confirmar Programação"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

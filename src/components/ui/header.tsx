@@ -1,4 +1,4 @@
-import { Sun, Bell, Settings, User, LogOut, Menu } from "lucide-react";
+import { Bell, Settings, User, LogOut, Menu } from "lucide-react";
 import {Badge} from "../ui/badge";
 import { useNavigate } from "react-router";
 
@@ -25,13 +25,6 @@ export function Header({ alarmsCount, onSidebarToggle }: HeaderProps) {
           >
             <Menu className="size-5 text-gray-600" />
           </button>
-          <div className="bg-amber-500 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-            <Sun className="size-5 sm:size-6 text-white" />
-          </div>
-          <div className="hidden sm:block min-w-0">
-            <h1 className="font-bold text-lg sm:text-xl truncate">Solar Manager</h1>
-            <p className="text-xs sm:text-sm text-gray-500 truncate">Sistema de Gestão de Usinas Solares</p>
-          </div>
         </div>
         
         <div className="flex items-center gap-2 sm:gap-4">

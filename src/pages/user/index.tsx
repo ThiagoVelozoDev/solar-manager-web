@@ -95,7 +95,7 @@ export default function UserList() {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Usuários</h1>
             <button
               onClick={handleCreate}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:shadow-lg transition-all"
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#008ed3] to-[#0055a3] text-white rounded-lg hover:shadow-lg transition-all"
             >
               <Plus className="size-5" />
               <span>Novo Usuário</span>
@@ -153,7 +153,7 @@ export default function UserList() {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleEdit(user.id)}
-                              className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                              className="p-2 text-[#008ed3] hover:bg-[#e6f4fc] rounded-lg transition-colors"
                               title="Editar"
                             >
                               <Edit className="size-4" />

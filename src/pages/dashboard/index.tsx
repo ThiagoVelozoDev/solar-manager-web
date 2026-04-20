@@ -240,7 +240,7 @@ export default function DashboardPage() {
             value={`${totalGeneration.toFixed(1)} kW`}
             subtitle={`de ${totalCapacity} kW`}
             icon={Zap}
-            color="bg-amber-500"
+            color="bg-[#0055a3]"
             trend={{ value: '12.5%', isPositive: true }}
           />
           <StatusCard
@@ -273,48 +273,45 @@ export default function DashboardPage() {
           <EnergyChart data={dashboardData?.charts ?? { daily: [], monthly: [] }} />
         </div>
 
-        <div className="flex flex-col gap-6 sm:gap-8 lg:flex-row">
-          {/* Tabela de Clientes */}
-          <div className={`h-auto lg:h-[calc(100vh-200px)] min-w-0 ${isAlertsPanelCollapsed ? 'lg:flex-1' : 'lg:flex-[2]'}`}>
+        <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
+          {/* Tabela de Usinas */}
+          <div className={`min-w-0 xl:min-h-[600px] ${isAlertsPanelCollapsed ? 'xl:flex-1' : 'xl:flex-[3]'}`}>
             {loading ? (
-              <div className="h-full rounded-lg border border-gray-200 bg-white p-8 text-center text-sm text-gray-500 flex items-center justify-center">
-                Carregando dados do dashboard...
+              <div className="rounded-xl border border-gray-200 bg-white p-12 text-center text-sm text-gray-400">
+                Carregando dados...
               </div>
             ) : (
               <PlantsTable plants={plants} onSelectPlant={setSelectedPlant} />
             )}
           </div>
 
-          {/* Painel de Alertas - altura total */}
-          <div className={`h-auto lg:h-[calc(100vh-200px)] transition-all duration-300 ${isAlertsPanelCollapsed ? 'lg:w-16' : 'lg:flex-1'}`}>
+          {/* Painel de Alertas */}
+          <div className={`transition-all duration-300 ${isAlertsPanelCollapsed ? 'xl:w-12' : 'xl:w-80 xl:shrink-0'}`}>
             {isAlertsPanelCollapsed ? (
-              <div className="h-full rounded-lg border border-gray-200 bg-white flex items-center justify-center">
+              <div className="rounded-xl border border-gray-200 bg-white p-3 flex xl:flex-col items-center justify-center gap-2">
                 <button
                   type="button"
                   onClick={() => setIsAlertsPanelCollapsed(false)}
-                  className="inline-flex items-center gap-1 rounded-md border border-gray-300 px-2 py-2 text-xs text-gray-700 hover:bg-gray-50"
-                  title="Expandir Alertas e Alarmes"
+                  className="inline-flex items-center gap-1 rounded-md border border-gray-300 px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
+                  title="Expandir Alertas"
                 >
                   <ChevronLeft className="size-4" />
-                  <span className="hidden xl:inline">Abrir</span>
                 </button>
               </div>
             ) : (
-              <div className="h-full flex flex-col">
-                <div className="mb-2 flex justify-end">
+              <div className="flex flex-col gap-2">
+                <div className="flex justify-end">
                   <button
                     type="button"
                     onClick={() => setIsAlertsPanelCollapsed(true)}
-                    className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
-                    title="Recolher Alertas e Alarmes"
+                    className="hidden xl:inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
+                    title="Recolher Alertas"
                   >
-                    <span>Recolher</span>
+                    Recolher
                     <ChevronRight className="size-4" />
                   </button>
                 </div>
-                <div className="min-h-0 flex-1">
-                  <AlertsPanel alerts={alerts} onDismiss={handleDismissAlert} />
-                </div>
+                <AlertsPanel alerts={alerts} onDismiss={handleDismissAlert} />
               </div>
             )}
           </div>

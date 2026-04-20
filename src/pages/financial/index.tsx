@@ -141,7 +141,7 @@ export default function FinancialPage() {
 
           <button
             onClick={() => setShowForm((prev) => !prev)}
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-2 text-white font-medium hover:shadow-lg transition-all"
+            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#008ed3] to-[#0055a3] px-4 py-2 text-white font-medium hover:shadow-lg transition-all"
           >
             <Plus className="size-4" />
             {showForm ? 'Fechar cadastro' : 'Cadastrar cliente'}
@@ -159,7 +159,7 @@ export default function FinancialPage() {
           </div>
           <div className="rounded-xl bg-white border border-gray-200 p-4 shadow-sm">
             <p className="text-xs text-gray-500">Pendentes</p>
-            <p className="text-2xl font-bold text-amber-600 mt-2">{metrics.pending}</p>
+            <p className="text-2xl font-bold text-[#0055a3] mt-2">{metrics.pending}</p>
           </div>
           <div className="rounded-xl bg-white border border-gray-200 p-4 shadow-sm">
             <p className="text-xs text-gray-500">Atrasados</p>
@@ -182,7 +182,7 @@ export default function FinancialPage() {
                   <input
                     {...register('companyName')}
                     placeholder="Ex: Solar Prime Energia"
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#008ed3] focus:border-transparent outline-none"
                   />
                   {errors.companyName && <p className="text-xs text-red-600 mt-1">{errors.companyName.message}</p>}
                 </div>
@@ -192,7 +192,7 @@ export default function FinancialPage() {
                   <input
                     {...register('contactName')}
                     placeholder="Nome do contato"
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#008ed3] focus:border-transparent outline-none"
                   />
                   {errors.contactName && <p className="text-xs text-red-600 mt-1">{errors.contactName.message}</p>}
                 </div>
@@ -203,7 +203,7 @@ export default function FinancialPage() {
                     {...register('email')}
                     type="email"
                     placeholder="financeiro@cliente.com"
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#008ed3] focus:border-transparent outline-none"
                   />
                   {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email.message}</p>}
                 </div>
@@ -212,7 +212,7 @@ export default function FinancialPage() {
                   <label className="block text-sm font-medium text-gray-800 mb-1">Plano</label>
                   <select
                     {...register('plan')}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#008ed3] focus:border-transparent outline-none"
                   >
                     <option value="Basico">Basico</option>
                     <option value="Profissional">Profissional</option>
@@ -228,7 +228,7 @@ export default function FinancialPage() {
                     step="0.01"
                     min="0"
                     placeholder="299.90"
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#008ed3] focus:border-transparent outline-none"
                   />
                   {errors.monthlyAmount && <p className="text-xs text-red-600 mt-1">{errors.monthlyAmount.message}</p>}
                 </div>
@@ -240,7 +240,7 @@ export default function FinancialPage() {
                     type="number"
                     min="1"
                     max="28"
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#008ed3] focus:border-transparent outline-none"
                   />
                   {errors.dueDay && <p className="text-xs text-red-600 mt-1">{errors.dueDay.message}</p>}
                 </div>
@@ -250,7 +250,7 @@ export default function FinancialPage() {
                   <input
                     {...register('nextBillingDate')}
                     type="date"
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#008ed3] focus:border-transparent outline-none"
                   />
                   {errors.nextBillingDate && <p className="text-xs text-red-600 mt-1">{errors.nextBillingDate.message}</p>}
                 </div>
@@ -259,7 +259,7 @@ export default function FinancialPage() {
                   <label className="block text-sm font-medium text-gray-800 mb-1">Status de pagamento</label>
                   <select
                     {...register('paymentStatus')}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-[#008ed3] focus:border-transparent outline-none"
                   >
                     <option value="Pendente">Pendente</option>
                     <option value="Pago">Pago</option>
@@ -278,7 +278,7 @@ export default function FinancialPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-medium hover:shadow-lg transition-all"
+                  className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#008ed3] to-[#0055a3] text-white text-sm font-medium hover:shadow-lg transition-all"
                 >
                   Salvar cliente
                 </button>
@@ -298,8 +298,8 @@ export default function FinancialPage() {
                   onClick={() => setFilter(option)}
                   className={`px-3 py-1.5 text-xs rounded-full border transition-colors ${
                     filter === option
-                      ? 'bg-orange-500 text-white border-orange-500'
-                      : 'bg-white text-gray-700 border-gray-300 hover:border-orange-300'
+                      ? 'bg-[#0055a3] text-white border-[#0055a3]'
+                      : 'bg-white text-gray-700 border-gray-300 hover:border-[#008ed3]/40'
                   }`}
                 >
                   {option}

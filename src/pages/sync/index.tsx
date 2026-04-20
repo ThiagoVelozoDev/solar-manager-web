@@ -541,7 +541,7 @@ export default function SyncMonitorPage() {
             <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
               <p className="text-xs uppercase tracking-wide text-gray-500">Tempo da execução atual</p>
               <div className="mt-2 flex items-center gap-2 text-gray-900">
-                <Timer className="size-4 text-amber-600" />
+                <Timer className="size-4 text-[#008ed3]" />
                 <span className="text-lg font-semibold">{formatDuration(providerProgress?.elapsedMs ?? null)}</span>
               </div>
               <p className="mt-2 text-xs text-gray-500">

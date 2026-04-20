@@ -255,7 +255,7 @@ export default function CompanyPage() {
 
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white gap-2">
+              <Button className="w-full sm:w-auto bg-gradient-to-r from-[#008ed3] to-[#0055a3] hover:from-[#0055a3] hover:to-[#0e457f] text-white gap-2">
                 <Plus className="size-4" />
                 Nova Empresa
               </Button>
@@ -292,7 +292,7 @@ export default function CompanyPage() {
                   <Button
                     type="submit"
                     disabled={isCreating}
-                    className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white"
+                    className="bg-gradient-to-r from-[#008ed3] to-[#0055a3] hover:from-[#0055a3] hover:to-[#0e457f] text-white"
                   >
                     {isCreating ? "Cadastrando..." : "Cadastrar"}
                   </Button>
@@ -372,10 +372,10 @@ export default function CompanyPage() {
                           <div className="inline-flex items-center gap-1">
                             <button
                               onClick={() => openEditDialog(company)}
-                              className="p-1.5 hover:bg-amber-50 rounded-lg transition-colors inline-flex"
+                              className="p-1.5 hover:bg-[#e6f4fc] rounded-lg transition-colors inline-flex"
                               title="Editar empresa"
                             >
-                              <Edit className="size-4 text-amber-500 hover:text-amber-600" />
+                              <Edit className="size-4 text-[#008ed3] hover:text-[#0055a3]" />
                             </button>
                             <button
                               onClick={() => openDeleteDialog(company)}
@@ -472,7 +472,7 @@ export default function CompanyPage() {
               <Button
                 type="submit"
                 disabled={isEditing}
-                className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white"
+                className="bg-gradient-to-r from-[#008ed3] to-[#0055a3] hover:from-[#0055a3] hover:to-[#0e457f] text-white"
               >
                 {isEditing ? "Salvando..." : "Salvar"}
               </Button>
