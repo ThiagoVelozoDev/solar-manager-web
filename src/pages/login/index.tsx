@@ -14,7 +14,7 @@ import { apiFetch } from '../../lib/api'
 import { useAuth } from '../../components/auth/AuthContext'
 
 import backgroundImage from "../../assets/fundo.png"
-import logoImage from "../../assets/logo.png"
+import logoImage from "../../assets/logo.jpeg"
 
 
 const loginSchema = z.object({
@@ -100,19 +100,19 @@ export  function LoginPage() {
 
       {/* Login Form */}
       <div className="relative z-20 w-full max-w-md mx-4">
-        <div className="bg-gray-800/95 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-white/10">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 border border-white/10">
 
           <div className="mb-8 flex flex-col items-center gap-4">
             <img
               src={logoImage}
               alt="SolarManager"
-              className="h-20 w-auto object-contain drop-shadow-[0_2px_16px_rgba(0,142,211,0.45)]"
+              className="h-40 w-auto object-contain "
             />
             <div className="text-center">
-              <h2 className="text-2xl font-semibold text-white mb-1">
+              <h2 className="text-2xl font-semibold text-gray-800 mb-1">
                 Bem-vindo
               </h2>
-              <p className="text-gray-300 text-sm">
+              <p className="text-gray-500 text-sm">
                 Faça login para acessar o sistema
               </p>
             </div>
@@ -122,7 +122,7 @@ export  function LoginPage() {
 
             {/* EMAIL */}
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-white text-sm">
+              <Label htmlFor="email" className="text-gray-700 text-sm">
                 E-mail
               </Label>
 
@@ -147,7 +147,7 @@ export  function LoginPage() {
 
             {/* PASSWORD */}
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white text-sm">
+              <Label htmlFor="password" className="text-gray-700 text-sm">
                 Senha
               </Label>
 
